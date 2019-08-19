@@ -192,7 +192,7 @@ class Info extends Component<Props> {
                     showsHorizontalScrollIndicator={false}
                     extraData={this.state.refreshUsers}
                     data={this.state.users}
-                    renderItem={item => this.renderUser(item)}
+                    renderItem={item => this.renderUser(item)} 
                 />
                 <View>
                     <CountDown
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 28,
         borderBottomRightRadius: 10,
-        mminWidth: (width/2)+ (width/4),
+        minWidth: (width/2)+ (width/4),
         minHeight: 47,
         borderTopLeftRadius: 10,
         borderTopRightRadius: 10
