@@ -41,7 +41,7 @@ export default class App extends React.Component {
     console.log('Done.') 
   }
   componentDidMount(){
-  /* this.clearAll();*/
+  this.clearAll(); 
   }
   
   render() {

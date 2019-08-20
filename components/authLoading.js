@@ -15,28 +15,34 @@ export default class AuthLoadingScreen extends React.Component {
   // Fetch the token from storage then navigate to our appropriate place
 
   _bootstrapAsync = async () => {
-    try {
-      const value = await AsyncStorage.getItem('user');
-      if(value !== null) {
-        this.props.navigation.navigate('Info');
-      }
-      else{
+    const value = await AsyncStorage.getItem('initial');
+    if (value === null) {
+      this.props.navigation.navigate('Initial');
+    }
+    else {
+      try {
+        const value = await AsyncStorage.getItem('user');
+        if (value !== null) {
+          this.props.navigation.navigate('Info');
+        }
+        else {
+          this.props.navigation.navigate('Sign');
+        }
+      } catch (e) {
         this.props.navigation.navigate('Sign');
       }
-    } catch(e) {
-      this.props.navigation.navigate('Sign');
     }
   }
   // Render any loading content that you like here
   render() {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size='large' style={styles.loading}/>
+        <ActivityIndicator size='large' style={styles.loading} />
         <StatusBar barStyle="default" />
       </View>
     );
   }
-} 
+}
 const styles = StyleSheet.create({
   loading: {
     position: 'absolute',
