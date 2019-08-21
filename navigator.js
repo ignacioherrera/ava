@@ -9,6 +9,7 @@ import AuthLoadingScreen from './components/authLoading';
 import NewGift from './pages/addGift';
 import Users from './pages/users';
 import Initial from './pages/initial';
+import CreateUser from './pages/createUser';
 const AppStack = createStackNavigator({
   Initial: {
     screen: Initial,
@@ -29,15 +30,26 @@ const AppStack = createStackNavigator({
     headerMode: 'screen',
   });
 const AuthStack = createStackNavigator({
+  Login: {
+    screen: Login,
+    navigationOptions: ({ navigation }) => ({
+      headerVisible: false
+    })
+  },
+  CreateUser: {
+    screen: CreateUser,
+    navigationOptions: ({ navigation }) => ({
+      headerVisible: false
+    })
+  },
   Sign: {
     screen: Sign,
     navigationOptions: ({ navigation }) => ({
       headerVisible: false
     })
 
-  },
-
-});
+  }
+}); 
 
 export default createAppContainer(createSwitchNavigator(
   {

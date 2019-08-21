@@ -40,10 +40,10 @@ export default class App extends React.Component {
   
     console.log('Done.') 
   }
-  componentDidMount(){
-  this.clearAll(); 
-  }
-  
+  componentDidMount(){ 
+  // this.clearAll(); 
+  } 
+   
   render() {
        /* if(this.state.loading) return (<ActivityIndicator size="large" color="#000" animating={true} style={styles.loading}/>);*/
         /*if(this.state.user) */

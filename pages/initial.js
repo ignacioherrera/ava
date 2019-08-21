@@ -22,7 +22,7 @@ class Initial extends Component<Props> {
     if(newIndex === 0 && this.state.prevSlide=== 2){
       this.setState({isLoading: true});
       AsyncStorage.setItem('initial', JSON.stringify(true)).then(() => {
-        this.props.navigation.navigate('AuthLoading');
+        this.props.navigation.navigate('Sign');
       }).catch(() => { this.setState({isLoading: falses}); });
 
     }

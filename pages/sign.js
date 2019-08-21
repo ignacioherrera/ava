@@ -20,6 +20,7 @@ class Sign extends Component<Props> {
       isLoading: false,
       error: '',
       loading: false,
+      auth: null,
     };
     this.state = {
       loading: false,
@@ -27,6 +28,12 @@ class Sign extends Component<Props> {
   }
   static navigationOptions = {
     header: null
+  }
+  componentDidMount(){
+    AsyncStorage.getItem('auth').then(auth=>{
+      const {uid} = JSON.parse(auth);
+      this.setState({auth: uid});
+    })
   }
   formatDate = (d) =>{
         month = '' + (d.getMonth() + 1),
@@ -62,12 +69,14 @@ class Sign extends Component<Props> {
       this.ref.add({
         name: this.state.name,
         birth_date: this.formatDate(this.state.birth_date),
+        uid: this.state.auth
       }).then((docRef) => {
         console.log('respuesta al crear user', docRef);
         user = {
           key: docRef.id,
           name: this.state.name,
           birth_date: this.formatDate(this.state.birth_date),
+          uid: this.state.auth
         } 
         this.setState({
           name: '',

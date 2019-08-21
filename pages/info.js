@@ -28,7 +28,7 @@ class Info extends Component<Props> {
             indexActive: null,
             daysToCloseVotation: 0,
             daysToBirthday: 0,
-            timeToBirthday:0
+            timeToBirthday: 0
         };
 
     }
@@ -37,7 +37,7 @@ class Info extends Component<Props> {
         const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
         const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
         const difference = Math.floor((utc2 - utc1) / _MS_PER_DAY);
-        const diff = Math.floor((utc2 - utc1)/1000);
+        const diff = Math.floor((utc2 - utc1) / 1000);
         console.log('diferencias', difference, diff);
         this.setState({
             daysToBirthday: difference,
@@ -121,8 +121,8 @@ class Info extends Component<Props> {
 
     renderUser = ({ item, index }) => {
         let css = [styles.userItem];
-        if (index === this.state.indexActive + 1) css = [styles.userItemRight];
-        if (index === this.state.indexActive - 1) css = [styles.userItemLeft];
+       // if (index === this.state.indexActive + 1) css = [styles.userItemRight];
+       // if (index === this.state.indexActive - 1) css = [styles.userItemLeft];
         if (index === this.state.indexActive) css = [styles.userItemActive];
 
         return (
@@ -140,6 +140,7 @@ class Info extends Component<Props> {
             this.setState({ userActive: u, loadingGifts: true, indexActive: index, refresh: !this.state.refresh, refreshUsers: !this.state.refreshUsers }, () => {
                 this.checkPayDates(today, this.state.userActive.actual_birth);
                 console.log(this.state.userActive);
+                console.log(this.state.user);
             });
 
         }
@@ -163,16 +164,23 @@ class Info extends Component<Props> {
         AsyncStorage.getItem('user').then((user) => {
             if (user) {
                 u = JSON.parse(user);
-                this.setState({ user: u });
-
-                console.log('el user del async storage didfocus', u);
-                this.props.navigation.setParams({ avatar: u.avatar });
-                this.usersSubscription = this.refUsers.onSnapshot(this.onUsersUpdate, (error) => {
-                    alert('Firebase connection error')
+                this.setState({ user: u }, () => {
+                    console.log('el user del async storage didfocus', u);
+                    this.props.navigation.setParams({ avatar: u.avatar });
+                    this.usersSubscription = this.refUsers.onSnapshot(this.onUsersUpdate, (error) => {
+                        alert('Firebase connection error')
+                    });
                 });
+
             }
         }).catch((e) => { alert(e) });
-    } 
+    }
+    createGift = () => {
+        const { name, actual_birth, key } = this.state.userActive;
+        this.props.navigation.navigate('NewGift', {
+            user: JSON.stringify({ name, actual_birth, key })
+        });
+    };
     reloadUsers = () => {
         this.setState({ refreshUsers: !this.state.refreshUsers });
     }
@@ -192,35 +200,54 @@ class Info extends Component<Props> {
                     showsHorizontalScrollIndicator={false}
                     extraData={this.state.refreshUsers}
                     data={this.state.users}
-                    renderItem={item => this.renderUser(item)} 
+                    renderItem={item => this.renderUser(item)}
                 />
                 <View>
                     <CountDown
                         until={this.state.timeToBirthday}
                         onFinish={() => this.reloadUsers}
                         size={18}
-                        style= {{marginTop: 10}}
+                        style={{ marginTop: 10 }}
                         digitStyle={{ backgroundColor: '#FFF' }}
                         digitTxtStyle={{ color: '#EB2626' }}
                     />
                 </View>
                 {
-                    this.state.userActive !== undefined && this.state.user !== undefined && this.state.daysToBirthday !== undefined && (
+                    this.state.userActive !== undefined && this.state.userActive !== null && this.state.user !== undefined && this.state.daysToBirthday !== undefined && (
                         <GiftsInfo user={this.state.user} navigation={this.props.navigation} userActive={this.state.userActive} daysToBirthday={this.state.daysToBirthday}></GiftsInfo>
                     )
                 }
-                {this.state.userActive.key !== this.state.user.key && (
-                    <TouchableHighlight style={(this.state.daysToBirthday <= 30) ? styles.chatBtn : { display: 'none' }} onPress={this.goChat}>
-                        <Image source={chatIcon} style={{ width: 60, height: 60 }} />
+                <View style={styles.bottomBar}>
+                    <TouchableHighlight onPress={() => { this.props.navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                        <Image source={profileIcon} style={{ width: 28, height: 28 }} />
                     </TouchableHighlight>
-                )
-                }
+
+                    {this.state.userActive.key !== this.state.user._id && (<TouchableHighlight onPress={this.createGift} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                        <Image source={addIcon} style={{ width: 28, height: 28 }} />
+                    </TouchableHighlight>)
+                    }
+                    {this.state.userActive.key !== this.state.user._id && (<TouchableHighlight onPress={this.goChat} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                        <Image source={chatIcon} style={{ width: 28, height: 28 }} />
+                    </TouchableHighlight>
+                    )
+                    }
+                </View>
+
             </View>)
     }
 }
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    bottomBar: {
+        backgroundColor: '#FAFAFA',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        flexDirection: 'row',
+        position: 'absolute',
+        bottom:0,
+        width: width
     },
     addBtn: {
         position: 'absolute',
@@ -249,9 +276,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 28,
         maxHeight: 47,
         minHeight: 47,
-        minWidth: (width/2)+ (width/4),
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10
+        minWidth: (width / 3) + (width / 12),
     },
     userItemRight: {
         backgroundColor: '#f5f5f5',
@@ -259,7 +284,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 28,
         maxHeight: 47,
         minHeight: 47,
-        minWidth: (width/2)+ (width/4),
+        minWidth: (width / 2) + (width / 4),
         borderBottomLeftRadius: 10,
         borderTopLeftRadius: 10,
         borderTopRightRadius: 10
@@ -270,7 +295,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 28,
         borderBottomRightRadius: 10,
-        minWidth: (width/2)+ (width/4),
+        minWidth: (width / 2) + (width / 4),
         minHeight: 47,
         borderTopLeftRadius: 10,
         borderTopRightRadius: 10
@@ -284,13 +309,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingVertical: 10,
         paddingHorizontal: 28,
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
-        minWidth: (width/2)+ (width/4),
+        minWidth: (width / 3) + (width / 12),
         borderBottomWidth: 3,
         borderColor: '#fff'
     },
-    itemViewParent:{
+    itemViewParent: {
         borderTopLeftRadius: 10,
         borderTopRightRadius: 10,
         backgroundColor: '#fff'

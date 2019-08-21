@@ -2,11 +2,12 @@ import React from 'react';
 import {
   ActivityIndicator,
   StatusBar,
+  Text,
   StyleSheet,
   View,
 } from 'react-native';
+import firebase from '../Firebase';
 import AsyncStorage from '@react-native-community/async-storage';
-
 export default class AuthLoadingScreen extends React.Component {
   constructor(props) {
     super(props);
@@ -15,23 +16,44 @@ export default class AuthLoadingScreen extends React.Component {
   // Fetch the token from storage then navigate to our appropriate place
 
   _bootstrapAsync = async () => {
-    const value = await AsyncStorage.getItem('initial');
-    if (value === null) {
-      this.props.navigation.navigate('Initial');
-    }
-    else {
-      try {
-        const value = await AsyncStorage.getItem('user');
-        if (value !== null) {
-          this.props.navigation.navigate('Info');
-        }
-        else {
-          this.props.navigation.navigate('Sign');
-        }
-      } catch (e) {
-        this.props.navigation.navigate('Sign');
+    console.log('Entro al loadings'); 
+    firebase.auth().onAuthStateChanged(user => {
+      console.log(user);
+      if(user){
+        AsyncStorage.getItem('initial').then(value =>{
+          if (value === null) {
+            this.props.navigation.navigate('Initial');
+          } 
+          else {
+            try {
+              AsyncStorage.getItem('user').then(value=>{
+                if (value !== null) {
+
+                  this.props.navigation.navigate('Info');
+                }
+                else {
+                  this.props.navigation.navigate('Sign');
+                }
+              }); 
+            } catch (e) {
+              this.props.navigation.navigate('Login');
+            }
+          }
+        })
       }
-    }
+      else{
+        AsyncStorage.getItem('auth').then(auth=>{
+            if(auth){
+              firebase.auth().signInWithEmailAndPassword(this.state.email, this.state.password).then(res=>{
+
+              }).catch(err=>{
+                this.props.navigation.navigate('Login');
+              });
+            }
+        }) 
+        this.props.navigation.navigate('Login');
+      }
+    }) 
   }
   // Render any loading content that you like here
   render() {
@@ -39,6 +61,7 @@ export default class AuthLoadingScreen extends React.Component {
       <View style={styles.loading}>
         <ActivityIndicator size='large' style={styles.loading} />
         <StatusBar barStyle="default" />
+        <Text style={{marginTop: 60}}>Trying to connect to the server</Text>
       </View>
     );
   }
