@@ -208,8 +208,10 @@ class Info extends Component<Props> {
                         onFinish={() => this.reloadUsers}
                         size={18}
                         style={{ marginTop: 10 }}
-                        digitStyle={{ backgroundColor: '#FFF' }}
-                        digitTxtStyle={{ color: '#EB2626' }}
+                        digitStyle={(this.daysToBirthday<=5)? styles.countClose: styles.countOpen}
+                        digitTxtStyle={{ color: '#000' }}
+                        separatorStyle={{marginHorizontal: 5, color: '#fff'}}
+                        showSeparator= {true}
                     />
                 </View>
                 {
@@ -407,6 +409,20 @@ const styles = StyleSheet.create({
     userLink: {
         marginTop: 5,
         marginLeft: 5
+    },
+    countOpen:{
+        backgroundColor: '#fff',
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 10,
+        marginHorizontal: 0
+    },
+    countClose:{
+        backgroundColor: '#fff',
+        borderWidth: 2,
+        borderColor: '#EB2626',
+        borderRadius: 10,
+        marginHorizontal: 0
     }
 
 });
