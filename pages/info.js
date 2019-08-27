@@ -3,8 +3,8 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Dimensions, FlatList, Image, TouchableHighlight, ActivityIndicator } from 'react-native';
-import { profileIcon, addIcon, chatIcon } from '../images';
+import { StyleSheet, Text, View, Dimensions, FlatList, Image, TouchableHighlight,TouchableOpacity, ActivityIndicator } from 'react-native';
+import { profileIcon, addIcon, moreIcon, homeIcon, chatIcon } from '../images';
 import firebase from '../Firebase';
 import GiftsInfo from '../components/GiftsInfo';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -37,7 +37,8 @@ class Info extends Component<Props> {
         const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
         const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
         const difference = Math.floor((utc2 - utc1) / _MS_PER_DAY);
-        const diff = Math.floor((utc2 - utc1) / 1000);
+        const diff = (b - a) / 1000;
+
         console.log('diferencias', difference, diff);
         this.setState({
             daysToBirthday: difference,
@@ -56,11 +57,14 @@ class Info extends Component<Props> {
                     flexGrow: 1,
                     alignSelf: 'center'
                 }]}>Birthdays</Text>
-            ),
-            headerLeft: (<View style={{ flex: 3 }}></View>),//add this
+            ), 
+            headerLeft: (
+            <View style={[styles.headerTitle, { flex: 3 }]}>
+                <TouchableOpacity onPress={() => { navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 7 }} ><Image source={homeIcon} style={{ width: 18, height: 19, marginTop: 5, marginLeft: 5 }} /></TouchableOpacity>
+            </View>),//add this
             headerRight: (
                 <View style={[styles.headerTitle, { flex: 1 }]}>
-                    <TouchableHighlight onPress={() => { navigation.navigate('Profile') }} style={{ paddingHorizontal: 5 }} ><Image source={(params.avatar) ? { uri: params.avatar } : profileIcon} style={{ width: 32, height: 32, marginTop: 5, marginLeft: 5 }} /></TouchableHighlight>
+                    <TouchableOpacity onPress={() => { navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 7 }} ><Image source={moreIcon} style={{ width: 25, height: 6, marginTop: 5, marginLeft: 5 }} /></TouchableOpacity>
                 </View>
 
             ),
@@ -127,9 +131,9 @@ class Info extends Component<Props> {
 
         return (
             <View style={styles.itemViewParent}>
-                <TouchableHighlight style={css} onPress={() => { this.changeUserActive(item, index) }}>
+                <TouchableOpacity style={css} onPress={() => { this.changeUserActive(item, index) }}>
                     <Text style={styles.userTitle}>{item.name.split(' ')[0]}</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
             </View>
         )
     }
@@ -216,27 +220,27 @@ class Info extends Component<Props> {
                 </View>
                 {
                     this.state.userActive !== undefined && this.state.userActive !== null && this.state.user !== undefined && this.state.daysToBirthday !== undefined && (
-                        <GiftsInfo user={this.state.user} navigation={this.props.navigation} userActive={this.state.userActive} daysToBirthday={this.state.daysToBirthday}></GiftsInfo>
+                        <GiftsInfo user={this.state.user} navigation={this.props.navigation} userActive={this.state.userActive} users={this.state.users} daysToBirthday={this.state.daysToBirthday}></GiftsInfo>
                     )
                 }
                 <View style={styles.bottomBar}>
-                    <TouchableHighlight onPress={() => { this.props.navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                    <TouchableOpacity onPress={() => { this.props.navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
                         <Image source={profileIcon} style={{ width: 28, height: 28 }} />
-                    </TouchableHighlight>
+                    </TouchableOpacity>
 
-                    {this.state.userActive.key !== this.state.user._id && (<TouchableHighlight onPress={this.createGift} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                    {this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.createGift} style={{ paddingHorizontal: 5, paddingVertical: 15, marginHorizontal: 45 }} >
                         <Image source={addIcon} style={{ width: 28, height: 28 }} />
-                    </TouchableHighlight>)
+                    </TouchableOpacity>)
                     }
-                    {this.state.userActive.key !== this.state.user._id && (<TouchableHighlight onPress={this.goChat} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
-                        <Image source={chatIcon} style={{ width: 28, height: 28 }} />
-                    </TouchableHighlight>
+                    {this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.goChat} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                        <Image source={chatIcon} style={{ width: 30, height: 28 }} />
+                    </TouchableOpacity>
                     )
                     }
-                </View>
-
+                </View> 
+ 
             </View>)
-    }
+    } 
 }
 const styles = StyleSheet.create({
     container: {
@@ -245,7 +249,7 @@ const styles = StyleSheet.create({
     bottomBar: {
         backgroundColor: '#FAFAFA',
         alignItems: 'center',
-        justifyContent: 'space-around',
+        justifyContent: 'center',
         flexDirection: 'row',
         position: 'absolute',
         bottom:0,
@@ -269,8 +273,7 @@ const styles = StyleSheet.create({
     },
     usersList: {
         maxHeight: 47,
-        minHeight: 47,
-        backgroundColor: '#666666'
+        minHeight: 47
     },
     userItem: {
         backgroundColor: '#f5f5f5',
@@ -278,7 +281,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 28,
         maxHeight: 47,
         minHeight: 47,
-        minWidth: (width / 3) + (width / 12),
+        minWidth: (width / 3),
     },
     userItemRight: {
         backgroundColor: '#f5f5f5',
@@ -311,7 +314,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingVertical: 10,
         paddingHorizontal: 28,
-        minWidth: (width / 3) + (width / 12),
+        minWidth: (width / 3),
         borderBottomWidth: 3,
         borderColor: '#fff'
     },

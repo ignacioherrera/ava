@@ -3,8 +3,8 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, Linking, Dimensions, FlatList, Image, TouchableHighlight, ActivityIndicator } from 'react-native';
-import { likeOffIcon, addIcon, likeOnIcon, backIcon, bestIcon, profileIcon } from '../images';
+import { StyleSheet, Text, View, ScrollView, Linking, Dimensions, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { likeOffIcon, likeOnIcon, linkIcon, profileIcon } from '../images';
 import firebase from '../Firebase';
 type Props = {};
 const { height, width } = Dimensions.get('window');
@@ -35,32 +35,68 @@ class GiftsInfo extends Component<Props> {
     }
     renderGift = ({ item, index }) => {
         return (
-            <View style={[styles.giftView]} >
+            <View style={(index === this.state.gifts.length - 1) ? [styles.giftView, styles.lastItem] : [styles.giftView]} >
                 <View style={styles.giftTopBar}>
                     <View style={{
                         flexDirection: 'row',
                         alignItems: 'center',
-            
+
                     }}>
-                        <Image source={(item.creator.avatar !== undefined && item.creator.avatar !== '') ? { uri: item.creator.avatar } : profileIcon} style={{ width: 32, height: 32, marginTop: 5, marginLeft: 5 }} />
-                        <View style={{marginLeft: 10}}>
+                        {
+                            (item.creator.avatar !== undefined && item.creator.avatar !== '') ? (
+                                <Image source={{ uri: item.creator.avatar }} style={{ width: 32, height: 32, marginTop: 5, marginLeft: 5 }} />
+                            ) : (
+                            
+                                <View style={{
+                                    width:32,
+                                    height: 32,
+                                    borderWidth: 1,
+                                    borderColor: '#000',
+                                    borderRadius:16,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <Text style={{
+                                        fontFamily: 'Lato-Bold',
+                                        fontSize: 20
+
+                                    }}>{item.creator.name[0]}</Text>
+                                </View>
+                            )
+                        }
+
+                        <View style={{ marginLeft: 10 }}>
                             <Text style={styles.giftName}>{item.name}</Text>
                             <Text style={styles.giftDescription}>{'Price: $' + item.price}</Text>
                         </View>
                     </View>
-                    <TouchableHighlight onPress={() => { Linking.openURL(item.link) }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
-                        <Image source={backIcon} style={{ width: 23, height: 18 }} />
-                    </TouchableHighlight>
+                    <TouchableOpacity onPress={() => { Linking.openURL(item.link) }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                        <Image source={linkIcon} style={{ width: 24, height: 22 }} />
+                    </TouchableOpacity>
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
-                    <TouchableHighlight disabled={this.state.loadingGifts} onPress={() => { this.vote(item.key, this.props.userActive) }} style={styles.voteButton}>
-                        <Image source={(this.checkVotes(item.key)) ? likeOnIcon : likeOffIcon} style={{ width: 23, height: 19}} />
-                    </TouchableHighlight>
-                    <Text style={styles.giftVotes}>{(item.vote_counter===1)?item.vote_counter+' like': item.vote_counter+' likes'}</Text>
+                {
+                    item.photo !== undefined && (
+                        <View style={{
+                            alignItems: 'center',
+                            height: 200,
+                        }}>
+                            <Image
+                                style={styles.photo}
+                                source={{ uri: item.photo }}
+                            />
+                        </View>
+                    )
+                }
+                <View style={{ flexDirection: 'row', paddingHorizontal: 25, justifyContent: 'space-between', alignItems: 'center', marginTop: 15 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <TouchableOpacity disabled={this.state.loadingGifts} onPress={() => { this.vote(item.key, this.props.userActive) }} style={styles.voteButton}>
+                            <Image source={(this.checkVotes(item.key)) ? likeOnIcon : likeOffIcon} style={{ width: 23, height: 19 }} />
+                        </TouchableOpacity>
+                        <Text style={styles.giftVotes}>{(item.vote_counter === 1) ? item.vote_counter + ' like' : item.vote_counter + ' likes'}</Text>
                     </View>
-
-                    
+                    <TouchableOpacity onPress={this.pay} disabled={index !== 0 || this.props.daysToBirthday > 5} style={(index !== 0 || this.props.daysToBirthday > 5) ? styles.payBtnDisabled : styles.payBtn}>
+                        <Text style={(index !== 0 || this.props.daysToBirthday > 5) ? styles.payTextDisabled : styles.payText}>Pay Now</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         );
@@ -69,15 +105,24 @@ class GiftsInfo extends Component<Props> {
     onGiftUpdate = (querySnapshot) => {
         const gifts = [];
         querySnapshot.forEach((gift) => {
-            const { description, date, link, price, name, creator, vote_counter } = gift.data();
+            const { description, date, link, price, name, creator, photo, vote_counter } = gift.data();
+            let us = creator;
+            if (this.props.users !== undefined) {
+                console.log('users', this.props.users, 'creator', creator);
+                let u = this.props.users.find(us => us.key === creator.key);
+                if (u !== undefined) {
+                    us.avatar = u.avatar;
+                }
+            }
             gifts.push({
                 key: gift.id,
                 description,
                 date,
                 link,
                 name,
+                photo,
                 price,
-                creator,
+                creator: us,
                 vote_counter
             });
         });
@@ -108,6 +153,7 @@ class GiftsInfo extends Component<Props> {
         console.log('propiedades', this.props);
         if (this.props.userActive !== undefined && this.props.user !== undefined && this.props.daysToBirthday !== undefined) {
             console.log('el user', this.props.user);
+            console.log('dias ', this.props.daysToBirthday);
             this.refVotes = firebase.firestore().collection('users').doc(this.props.user._id).collection('votes');
             this.voteSubscription = this.refVotes.onSnapshot(this.onVoteUpdate, (error) => {
                 alert('Firebase connection error')
@@ -118,7 +164,10 @@ class GiftsInfo extends Component<Props> {
         }
     }
     componentDidUpdate(prevProps) {
-        console.log('las props', this.props);
+        if (prevProps.users !== this.props.users) {
+            this.setState({ refresh: !this.state.refresh });
+        }
+
         if (prevProps.userActive !== this.props.userActive) {
             if (this.props.userActive !== undefined && this.props.user !== undefined && this.props.daysToBirthday !== undefined) {
                 this.setState({
@@ -186,30 +235,6 @@ class GiftsInfo extends Component<Props> {
                 </View>
             )
         }
-        if (this.props.daysToBirthday !== undefined && this.props.daysToBirthday <= 5 && this.state.gifts.length > 0) {
-            return (
-                <View style={{ alignItems: 'center', marginTop: 24, marginBottom: 11, paddingHorizontal: 45 }} >
-                    <Image source={bestIcon} style={{ width: 33, height: 21, marginBottom: 8, marginTop: 16 }} />
-                    <Text style={styles.giftName}>{this.state.gifts[0].name}</Text>
-                    <Text style={styles.giftDescription}>{this.state.gifts[0].description}</Text>
-                    <Text style={styles.giftDescription}>{'Price: $' + this.state.gifts[0].price}</Text>
-                    <Text style={styles.giftLink} onPress={() => { Linking.openURL(this.state.gifts[0].link) }}>{this.state.gifts[0].link.substring(0, 20) + '...'}</Text>
-                    <Text style={[styles.giftDescription, { marginTop: 10 }]}>{'Sugerido por ' + this.state.gifts[0].creator.name}</Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 18 }}>
-                        <View>
-                        <Image source={likeOnIcon} style={{ width: 16, height: 16, marginTop: 5, margin: 5 }} />
-                        <Text style={styles.giftVotes}>{this.state.gifts[0].vote_counter+' likes'}</Text>
-                        </View>
-                        
-                    </View>
-                    <View style={{ marginTop: 15, alignItems: 'center' }}>
-                        <TouchableHighlight style={styles.btn} onPress={this.pay}>
-                            <Text style={styles.titleBtn}>Send Money</Text>
-                        </TouchableHighlight>
-                    </View>
-                </View>
-            );
-        }
         return (
             <View style={styles.container}>
                 <FlatList
@@ -227,10 +252,47 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    giftTopBar:{
+    lastItem: {
+        borderBottomWidth: 1,
+        marginBottom: 80,
+        paddingBottom: 20,
+        borderBottomColor: '#D0D0D0'
+    },
+    payBtnDisabled: {
+        borderWidth: 1,
+        borderColor: '#E5E5E5',
+        borderRadius: 5,
+        padding: 5
+    },
+    payTextDisabled: {
+        fontSize: 12,
+        fontFamily: 'Lato-Bold',
+        fontWeight: '900',
+        color: '#E5E5E5'
+    },
+    payBtn: {
+        borderWidth: 1,
+        borderColor: '#000',
+        borderRadius: 5,
+        padding: 5
+    },
+    photo: {
+        flex: 1,
+        aspectRatio: 1,
+        resizeMode: 'contain',
+    },
+    payText: {
+        fontSize: 12,
+        fontFamily: 'Lato-Bold',
+        fontWeight: '900',
+        color: '#000'
+    },
+    giftTopBar: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingHorizontal: 25,
+        paddingVertical: 10
     },
     giftName: {
         fontFamily: 'Lato-Bold',
@@ -244,6 +306,13 @@ const styles = StyleSheet.create({
         color: '#000',
     },
     voteButton: {
+        paddingHorizontal: 10,
+        paddingVertical: 5
+    },
+    giftVotes: {
+        fontSize: 12,
+        fontFamily: 'Lato-Bold',
+        color: '#000',
     },
     giftList: {
         marginTop: 15
@@ -276,9 +345,9 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderTopWidth: 1,
         borderTopColor: '#D0D0D0',
-        marginVertical: 12,
-        paddingVertical: 10,
-        paddingHorizontal: 25
+        marginVertical: 10,
+        paddingBottom: 10,
+        paddingTop: 5
     },
     itemGenericView: {
         alignItems: 'center',

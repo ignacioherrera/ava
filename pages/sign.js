@@ -3,7 +3,7 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableHighlight, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import firebase from '../Firebase';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -128,9 +128,9 @@ class Sign extends Component<Props> {
           date={this.state.birth_date}
           onDateChange={birth_date => this.setState({ birth_date })}
         />
-        <TouchableHighlight style={styles.btn} onPress={this.save} disabled={this.state.loading}>
+        <TouchableOpacity style={styles.btn} onPress={this.save} disabled={this.state.loading}>
           <Text style={[styles.titleBtn, { color: "#fff" }]}>Create</Text>
-        </TouchableHighlight>
+        </TouchableOpacity>
         <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
       </View>
  

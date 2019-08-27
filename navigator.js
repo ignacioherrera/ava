@@ -4,27 +4,17 @@ import Home from './pages/home';
 import Sign from './pages/sign';
 import Info from './pages/info';
 import Profile from './pages/profile';
-import EventChat from './pages/eventChat';
 import AuthLoadingScreen from './components/authLoading';
 import NewGift from './pages/addGift';
 import Users from './pages/users';
 import Initial from './pages/initial';
 import CreateUser from './pages/createUser';
 const AppStack = createStackNavigator({
-  Initial: {
-    screen: Initial,
-    navigationOptions: ({ navigation }) => ({
-      headerVisible: false
-    })
-  },
   Info: { screen: Info },
   Home: { screen: Home },
   Profile: { screen: Profile },
   NewGift: { screen: NewGift },
-  Users: { screen: Users },
-  EventChat: {
-    screen: EventChat
-  }
+  Users: { screen: Users }
 },
   {
     headerMode: 'screen',
@@ -54,6 +44,7 @@ const AuthStack = createStackNavigator({
 export default createAppContainer(createSwitchNavigator(
   {
     AuthLoading: AuthLoadingScreen,
+    Initial: Initial,
     App: AppStack,
     Auth: AuthStack,
   },

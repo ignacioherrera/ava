@@ -3,7 +3,7 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, Button, TouchableHighlight, Image, Platform } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, Button, TouchableOpacity, Image, Platform } from 'react-native';
 import ImagePicker from 'react-native-image-picker';
 import AsyncStorage from '@react-native-community/async-storage';
 import RNFetchBlob from 'react-native-fetch-blob';
@@ -144,19 +144,17 @@ class Profile extends Component<Props> {
           )
         }
         <View style={{ alignItems: 'center' }}>
-          <TouchableHighlight style={[styles.btn]} onPress={this.handleChoosePhoto} disabled={this.state.loading}>
+          <TouchableOpacity style={[styles.btn]} onPress={this.handleChoosePhoto} disabled={this.state.loading}>
             <Text style={[styles.title, { color: "#fff" }]}>Change Photo</Text>
-          </TouchableHighlight>
+          </TouchableOpacity>
 
-          <TouchableHighlight style={[styles.btn]} onPress={this.uploadPhoto} disabled={this.state.loading || this.state.photo === null}>
+          <TouchableOpacity style={[styles.btn]} onPress={this.uploadPhoto} disabled={this.state.loading || this.state.photo === null}>
             <Text style={[styles.title, { color: "#fff" }]}>Save Photo</Text>
-          </TouchableHighlight>
-          <TouchableHighlight style={[styles.btn]} onPress={() => { this.props.navigation.navigate('Users') }}>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn]} onPress={() => { this.props.navigation.navigate('Users') }}>
             <Text style={[styles.title, { color: "#fff" }]}>View users registered</Text>
-          </TouchableHighlight>
-          <TouchableHighlight style={[styles.btn, {marginBottom: 10}]} onPress={this.deleteUser}>
-            <Text style={[styles.title, { color: "#fff" }]}>Delete my account</Text>
-          </TouchableHighlight>
+          </TouchableOpacity>
+          
         </View>
         <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
       </ScrollView>

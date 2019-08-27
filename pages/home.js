@@ -29,7 +29,7 @@ class Home extends Component<Props> {
     return {
       headerTitle: (
         <View style={styles.headerTitle}>
-          <Text style={styles.title}>{(params.name) ? 'Cumpleaños de ' + params.name : ''}</Text>
+          <Text style={styles.title}>{(params.name) ? params.name + "'s Birthday" : ''}</Text>
           
         </View>
       ),

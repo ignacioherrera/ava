@@ -71,8 +71,11 @@ class Login extends Component<Props> {
           if(err.code=== 'auth/network-request-failed'){
             this.setState({errorConnect: true, loading: false});
           }
-          console.log(err);
-          this.setState({error: true, loading: false});
+          else{
+            console.log(err);
+            this.setState({error: true, loading: false});
+          }
+         
         });
     }
   }
