@@ -10,23 +10,24 @@ import RNFetchBlob from 'react-native-fetch-blob';
 import AsyncStorage from '@react-native-community/async-storage';
 type Props = {};
 const originalXMLHttpRequest = window.XMLHttpRequest;
-class NewGift extends Component<Props> {
+class EditGift extends Component<Props> {
   constructor(props) {
     super(props);
-    this.props.navigation
-    this.forUser = JSON.parse(this.props.navigation.getParam('user'));
+    this.props.navigation;
+    this.gift = JSON.parse(this.props.navigation.getParam('gift'));
     this.ref = firebase.firestore().collection('gifts');
-    this.refMessages = firebase.firestore().collection('messages');
+    console.log('las props', this.gift);
     this.state = {
-      link: '',
+      link: this.gift.link,
       photo: null,
-      date: null,
-      for_user: false,
-      name: '',
+      photo_init: this.gift.photo,
+      date: this.gift.date,
+      for_user: this.gift.for_user,
+      name: this.gift.name,
       nameError: '',
-      creator: null,
-      price: '',
-      description: '',
+      creator: this.gift.creator,
+      price: this.gift.price,
+      description: this.gift.description,
       isLoading: false,
       users: [],
       loading: false,
@@ -52,7 +53,7 @@ class NewGift extends Component<Props> {
       }
     })
   }
-  nameGen = () =>{
+  nameGen = () => {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
   }
   uploadPhoto = (currentUser) => {
@@ -77,39 +78,19 @@ class NewGift extends Component<Props> {
       .then(() => {
         uploadBlob.close()
         return imageRef.getDownloadURL();
-      }).then((url)=>{
+      }).then((url) => {
         window.XMLHttpRequest = originalXMLHttpRequest;
-        this.ref.add({
+        this.ref.doc(this.gift.key).update({
           creator: currentUser,
           date: firebase.firestore.FieldValue.serverTimestamp(),
-          for_user: this.forUser,
+          for_user: this.gift.for_user,
           name: this.state.name,
           description: this.state.description,
           link: this.state.link.toLowerCase(),
           price: this.state.price,
           photo: url,
-          vote_counter: 0,
-        }).then((docRef) => {
-          const text = `I suggest a gift\n ${this.state.link} \n ${(this.state.description !== '') ? this.state.description : ''} \n please go to the info section and vote!!!`;
-          const message = {
-            text: text,
-            user: {
-              _id: currentUser.key,
-              name: currentUser.name
-            },
-            _id: this.refMessages.doc().id,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            for_user: {
-              key: this.forUser.key,
-              name: this.forUser.name
-            },
-            birth_date: this.forUser.actual_birth
-          };
-          this.refMessages.add(message).then(() => {
-            this.props.navigation.goBack();
-          }).catch((e) => {
-            alert(e);
-          });
+        }).then(res => {
+          this.props.navigation.goBack();
         })
           .catch((error) => {
             console.log("Error adding document: ", error);
@@ -141,57 +122,36 @@ class NewGift extends Component<Props> {
           if (this.state.photo !== null) {
             this.uploadPhoto(currentUser);
           }
-          else{
-            this.ref.add({
+          else {
+            this.ref.doc(this.gift.key).update({
               creator: currentUser,
               date: firebase.firestore.FieldValue.serverTimestamp(),
-              for_user: this.forUser,
+              for_user: this.gift.for_user,
               name: this.state.name,
+              photo: this.gift.photo,
               description: this.state.description,
               link: this.state.link.toLowerCase(),
               price: this.state.price,
-              vote_counter: 0,
-            }).then((docRef) => {
-              const text = `I suggest a gift\n ${this.state.link} \n ${(this.state.description !== '') ? this.state.description : ''} \n please go to the info section and vote!!!`;
-              const message = {
-                text: text,
-                user: {
-                  _id: currentUser.key,
-                  name: currentUser.name
-                },
-                _id: this.refMessages.doc().id,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                for_user: {
-                  key: this.forUser.key,
-                  name: this.forUser.name
-                },
-                birth_date: this.forUser.actual_birth
-              };
-              this.refMessages.add(message).then(() => {
-                this.props.navigation.goBack();
-              }).catch((e) => {
-                alert(e);
-  
+            }).then(res => {
+              this.props.navigation.goBack();
+            }).catch((error) => {
+              console.log("Error adding document: ", error);
+              this.setState({
+                error: error,
+                isLoading: false,
               });
-            })
-              .catch((error) => {
-                console.log("Error adding document: ", error);
-                this.setState({
-                  error: error,
-                  isLoading: false,
-                });
-              });
+            });
           }
 
         }
         catch (error) {
           alert('No internet Connection' + error);
-          this.setState({isLoading: false});
+          this.setState({ isLoading: false });
         }
       }).catch(() => { alert('Problem with the user stored in the phone') });
     }
   }
-  validate() {
+  validate = () => {
     const regPrice = /^\d{0,8}(\.\d{1,4})?$/;
     const regUrl = /^(ftp|https?):\/\/+(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;
 
@@ -223,18 +183,22 @@ class NewGift extends Component<Props> {
   }
 
   render() {
+    console.log(this.gift);
+    console.log(this.state.photo_init);
     return (
       <ScrollView>
         <View style={styles.container}>
           <TextInput
             style={styles.input}
             placeholder="Name"
+            value={this.state.name}
             onChangeText={(text) => { this.setState({ 'name': text }) }}
           />
           <TextInput
             style={styles.input}
             textContentType={'URL'}
             placeholder="Link"
+            value={this.state.link}
             onChangeText={(text) => { this.setState({ 'link': text }) }}
           />
           <Text style={(this.state.linkError !== '') ? [styles.errorText] : []}>{this.state.linkError}</Text>
@@ -242,6 +206,7 @@ class NewGift extends Component<Props> {
             placeholder="Price"
             style={styles.input}
             keyboardType={'numeric'}
+            value={this.state.price}
             onChangeText={(text) => { this.setState({ 'price': text }) }}
           />
           <Text style={(this.state.priceError !== '') ? [styles.errorText] : []}>{this.state.priceError}</Text>
@@ -265,18 +230,27 @@ class NewGift extends Component<Props> {
               </View>
             )
           }
-
+          {
+            this.state.photo === null && this.gift.photo !== null && this.gift.photo !== undefined && (
+              <View style={{ alignItems: 'center', maxHeight: 200 }}>
+                <Image
+                  style={styles.photo}
+                  source={{ uri: this.gift.photo }}
+                />
+              </View>
+            )
+          }
           <TouchableOpacity style={styles.btn} onPress={this.handleChoosePhoto} disabled={this.state.isLoading}>
-            <Text style={[styles.titleBtn, { color: "#fff" }]}>{(this.state.photo===null)?'Open Gallery': 'Change Photo'}</Text>
+            <Text style={[styles.titleBtn, { color: "#fff" }]}>{(this.state.photo === null && this.gift.photo) ? 'Open Gallery' : 'Change Photo'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.btnBlack} onPress={this.save} disabled={this.state.isLoading}>
-            <Text style={[styles.titleBtn, { color: "#fff", marginBottom: 20 }]}>Create</Text>
+            <Text style={[styles.titleBtn, { color: "#fff", marginBottom: 20 }]}>Update</Text>
           </TouchableOpacity>
           <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.isLoading) ? [styles.loading] : [styles.loadingoff]} />
         </View>
       </ScrollView>
-    );
+    ); 
   }
 }
 
@@ -346,4 +320,4 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
 });
-export default NewGift;
+export default EditGift;

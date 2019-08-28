@@ -39,7 +39,6 @@ class Info extends Component<Props> {
         const difference = Math.floor((utc2 - utc1) / _MS_PER_DAY);
         const diff = (b - a) / 1000;
 
-        console.log('diferencias', difference, diff);
         this.setState({
             daysToBirthday: difference,
             daysToCloseVotation: difference - 5,
@@ -120,9 +119,9 @@ class Info extends Component<Props> {
     }
     goChat = () => {
         console.log('lo que mando para el chat', this.state.userActive);
-        this.props.navigation.navigate('Home', { userActive: JSON.stringify(this.state.userActive) });
+        this.props.navigation.navigate('Home', { userActive: JSON.stringify(this.state.userActive)});
     }
-
+    
     renderUser = ({ item, index }) => {
         let css = [styles.userItem];
        // if (index === this.state.indexActive + 1) css = [styles.userItemRight];

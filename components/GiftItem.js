@@ -4,7 +4,7 @@
  */
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, Linking, Dimensions, FlatList, Image, TouchableHighlight, ActivityIndicator } from 'react-native';
-import { likeOffIcon, addIcon, likeOnIcon, bestIcon } from '../images';
+import { likeOffIcon, editIcon, likeOnIcon, bestIcon } from '../images';
 import firebase from '../Firebase';
 type Props = {};
 const { height, width } = Dimensions.get('window');

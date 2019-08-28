@@ -9,12 +9,14 @@ import NewGift from './pages/addGift';
 import Users from './pages/users';
 import Initial from './pages/initial';
 import CreateUser from './pages/createUser';
+import EditGift from './pages/editGift'; 
 const AppStack = createStackNavigator({
   Info: { screen: Info },
   Home: { screen: Home },
   Profile: { screen: Profile },
   NewGift: { screen: NewGift },
-  Users: { screen: Users }
+  Users: { screen: Users },
+  EditGift: {screen: EditGift}
 },
   {
     headerMode: 'screen',

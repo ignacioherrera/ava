@@ -10,3 +10,4 @@ export const likeOffIcon = require('./likeOff.png');
 export const moreIcon = require('./more.png');
 export const likeOnIcon = require('./likeOn.png');
 export const linkIcon = require('./link.png');
+export const editIcon = require('./edit.png');

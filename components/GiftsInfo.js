@@ -4,14 +4,14 @@
  */
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, ScrollView, Linking, Dimensions, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { likeOffIcon, likeOnIcon, linkIcon, profileIcon } from '../images';
+import { likeOffIcon, likeOnIcon, linkIcon, editIcon } from '../images';
 import firebase from '../Firebase';
 type Props = {};
 const { height, width } = Dimensions.get('window');
 class GiftsInfo extends Component<Props> {
     constructor(props) {
         super(props);
-
+        this.props.navigation;
         this.refGifts = firebase.firestore().collection('gifts');
         this.refVotes = firebase.firestore().collection('users').doc(this.props.user._id).collection('votes');
         this.giftSubscription = null;
@@ -33,6 +33,12 @@ class GiftsInfo extends Component<Props> {
         if (r !== undefined) return true;
         return false;
     }
+    edit = (gift) =>{
+        console.log(gift);
+        console.log(this.props);
+        this.props.navigation.navigate('EditGift', {gift: JSON.stringify(gift)}); 
+    }
+
     renderGift = ({ item, index }) => {
         return (
             <View style={(index === this.state.gifts.length - 1) ? [styles.giftView, styles.lastItem] : [styles.giftView]} >
@@ -46,23 +52,23 @@ class GiftsInfo extends Component<Props> {
                             (item.creator.avatar !== undefined && item.creator.avatar !== '') ? (
                                 <Image source={{ uri: item.creator.avatar }} style={{ width: 32, height: 32, marginTop: 5, marginLeft: 5 }} />
                             ) : (
-                            
-                                <View style={{
-                                    width:32,
-                                    height: 32,
-                                    borderWidth: 1,
-                                    borderColor: '#000',
-                                    borderRadius:16,
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}>
-                                    <Text style={{
-                                        fontFamily: 'Lato-Bold',
-                                        fontSize: 20
 
-                                    }}>{item.creator.name[0]}</Text>
-                                </View>
-                            )
+                                    <View style={{
+                                        width: 32,
+                                        height: 32,
+                                        borderWidth: 1,
+                                        borderColor: '#000',
+                                        borderRadius: 16,
+                                        justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}>
+                                        <Text style={{
+                                            fontFamily: 'Lato-Bold',
+                                            fontSize: 20
+
+                                        }}>{item.creator.name[0]}</Text>
+                                    </View>
+                                )
                         }
 
                         <View style={{ marginLeft: 10 }}>
@@ -70,9 +76,23 @@ class GiftsInfo extends Component<Props> {
                             <Text style={styles.giftDescription}>{'Price: $' + item.price}</Text>
                         </View>
                     </View>
-                    <TouchableOpacity onPress={() => { Linking.openURL(item.link) }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
-                        <Image source={linkIcon} style={{ width: 24, height: 22 }} />
-                    </TouchableOpacity>
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center'
+                    }}>
+                        {
+                            this.props.user._id == item.creator.key && (
+                                <TouchableOpacity style={{marginRight: 3, marginTop: -3}} onPress={()=>{this.edit(item)}} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                                    <Image source={editIcon} style={{ width: 24, height: 24 }} />
+                                </TouchableOpacity>
+                            )
+                        }
+                        <TouchableOpacity onPress={() => { Linking.openURL(item.link) }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                            <Image source={linkIcon} style={{ width: 24, height: 22 }} />
+                        </TouchableOpacity>
+                    </View>
+
                 </View>
                 {
                     item.photo !== undefined && (
@@ -90,7 +110,7 @@ class GiftsInfo extends Component<Props> {
                 <View style={{ flexDirection: 'row', paddingHorizontal: 25, justifyContent: 'space-between', alignItems: 'center', marginTop: 15 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                         <TouchableOpacity disabled={this.state.loadingGifts} onPress={() => { this.vote(item.key, this.props.userActive) }} style={styles.voteButton}>
-                            <Image source={(this.checkVotes(item.key)) ? likeOnIcon : likeOffIcon} style={{ width: 23, height: 19 }} />
+                            <Image source={(this.checkVotes(item.key)) ? likeOnIcon : likeOffIcon} style={{ width: 23, height: 20 }} />
                         </TouchableOpacity>
                         <Text style={styles.giftVotes}>{(item.vote_counter === 1) ? item.vote_counter + ' like' : item.vote_counter + ' likes'}</Text>
                     </View>
@@ -105,7 +125,7 @@ class GiftsInfo extends Component<Props> {
     onGiftUpdate = (querySnapshot) => {
         const gifts = [];
         querySnapshot.forEach((gift) => {
-            const { description, date, link, price, name, creator, photo, vote_counter } = gift.data();
+            const { description, date, link, price, name, creator, photo, vote_counter, for_user } = gift.data();
             let us = creator;
             if (this.props.users !== undefined) {
                 console.log('users', this.props.users, 'creator', creator);
@@ -120,6 +140,7 @@ class GiftsInfo extends Component<Props> {
                 date,
                 link,
                 name,
+                for_user,
                 photo,
                 price,
                 creator: us,
