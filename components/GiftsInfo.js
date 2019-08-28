@@ -33,10 +33,10 @@ class GiftsInfo extends Component<Props> {
         if (r !== undefined) return true;
         return false;
     }
-    edit = (gift) =>{
+    edit = (gift) => {
         console.log(gift);
         console.log(this.props);
-        this.props.navigation.navigate('EditGift', {gift: JSON.stringify(gift)}); 
+        this.props.navigation.navigate('EditGift', { gift: JSON.stringify(gift) });
     }
 
     renderGift = ({ item, index }) => {
@@ -70,24 +70,26 @@ class GiftsInfo extends Component<Props> {
                                     </View>
                                 )
                         }
+                        {
+                            item.creator.key === this.props.user._id ? (
+                                <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => { this.edit(item) }}>
+                                    <Text style={styles.giftName}>{item.name}</Text>
+                                    <Text style={styles.giftDescription}>{'Price: $' + item.price}</Text>
+                                </TouchableOpacity>
+                            ) : (
+                                    <View style={{ marginLeft: 10 }} onPress={() => { this.edit(item) }}>
+                                        <Text style={styles.giftName}>{item.name}</Text>
+                                        <Text style={styles.giftDescription}>{'Price: $' + item.price}</Text>
+                                    </View>
+                                )
+                        }
 
-                        <View style={{ marginLeft: 10 }}>
-                            <Text style={styles.giftName}>{item.name}</Text>
-                            <Text style={styles.giftDescription}>{'Price: $' + item.price}</Text>
-                        </View>
                     </View>
                     <View style={{
                         flexDirection: 'row',
                         justifyContent: 'flex-end',
                         alignItems: 'center'
                     }}>
-                        {
-                            this.props.user._id == item.creator.key && (
-                                <TouchableOpacity style={{marginRight: 3, marginTop: -3}} onPress={()=>{this.edit(item)}} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
-                                    <Image source={editIcon} style={{ width: 24, height: 24 }} />
-                                </TouchableOpacity>
-                            )
-                        }
                         <TouchableOpacity onPress={() => { Linking.openURL(item.link) }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
                             <Image source={linkIcon} style={{ width: 24, height: 22 }} />
                         </TouchableOpacity>
