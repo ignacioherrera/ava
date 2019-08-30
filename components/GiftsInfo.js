@@ -258,6 +258,13 @@ class GiftsInfo extends Component<Props> {
                 </View>
             )
         }
+        if (this.props.daysToBirthday !== undefined && this.props.daysToBirthday > 30) {
+            return (
+                <View style={{ marginTop: 50 }}>
+                    <Text style={{ fontFamily: 'Lato-Regular', fontSize: 18, color: '#666666', textAlign: 'center' }}>Soon we will prepare an incredible gift here</Text>
+                </View>
+            )
+        }
         return (
             <View style={styles.container}>
                 <FlatList
