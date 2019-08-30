@@ -227,11 +227,11 @@ class Info extends Component<Props> {
                         <Image source={profileIcon} style={{ width: 28, height: 28 }} />
                     </TouchableOpacity>
 
-                    {this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.createGift} style={{ paddingHorizontal: 5, paddingVertical: 15, marginHorizontal: 45 }} >
+                    {this.state.daysToBirthday<=30 &&this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.createGift} style={{ paddingHorizontal: 5, paddingVertical: 15, marginHorizontal: 45 }} >
                         <Image source={addIcon} style={{ width: 28, height: 28 }} />
                     </TouchableOpacity>)
                     }
-                    {this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.goChat} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
+                    {this.state.daysToBirthday<=30 &&this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.goChat} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
                         <Image source={chatIcon} style={{ width: 30, height: 28 }} />
                     </TouchableOpacity>
                     )
