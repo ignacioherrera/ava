@@ -29,7 +29,7 @@ export default class AuthLoadingScreen extends React.Component {
               AsyncStorage.getItem('user').then(value=>{
                 if (value !== null) {
 
-                  this.props.navigation.navigate('Info');
+                  this.props.navigation.navigate('Sign');
                 }
                 else {
                   this.props.navigation.navigate('Sign');
@@ -61,7 +61,7 @@ export default class AuthLoadingScreen extends React.Component {
       <View style={styles.loading}>
         <ActivityIndicator size='large' style={styles.loading} />
         <StatusBar barStyle="default" />
-        <Text style={{marginTop: 60}}>Trying to connect to the server</Text>
+        <Text style={{marginTop: 60}}>Connecting to the server</Text>
       </View>
     );
   }

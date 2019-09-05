@@ -3,12 +3,12 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Dimensions, FlatList, Image, TouchableHighlight,TouchableOpacity, ActivityIndicator } from 'react-native';
-import { profileIcon, addIcon, moreIcon, homeIcon, chatIcon } from '../images';
+import { StyleSheet, Text, View, Dimensions, FlatList, Image, TouchableHighlight, TouchableOpacity, ActivityIndicator } from 'react-native';
 import firebase from '../Firebase';
 import GiftsInfo from '../components/GiftsInfo';
 import AsyncStorage from '@react-native-community/async-storage';
-import CountDown from 'react-native-countdown-component';
+import AlertCountdown from '../components/alertCountdown';
+import BottomBar from '../components/bottomBar';
 type Props = {};
 const { height, width } = Dimensions.get('window');
 class Info extends Component<Props> {
@@ -19,6 +19,7 @@ class Info extends Component<Props> {
         this.usersSubscription = null;
         this.state = {
             users: [],
+            alert: false,
             refresh: false,
             refreshUsers: false,
             isLoading: true,
@@ -30,24 +31,24 @@ class Info extends Component<Props> {
             daysToBirthday: 0,
             timeToBirthday: 0
         };
-
     }
     checkPayDates(a, b) {
         const _MS_PER_DAY = 1000 * 60 * 60 * 24;
         const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
         const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
         const difference = Math.floor((utc2 - utc1) / _MS_PER_DAY);
-        const diff = (b - a) / 1000;
 
         this.setState({
             daysToBirthday: difference,
             daysToCloseVotation: difference - 5,
-            timeToBirthday: diff
         });
 
         return false;
     }
-    static navigationOptions = ({ navigation }) => {
+    static navigationOptions = {
+        header: null
+    }
+    /*static navigationOptions = ({ navigation }) => {
         const { params = {} } = navigation.state;
         return {
             headerTitle: (
@@ -76,7 +77,7 @@ class Info extends Component<Props> {
                 fontFamily: "Lato-Bold"
             },
         }
-    };
+    };*/
     onUsersUpdate = (querySnapshot) => {
         const users = [];
         const today = new Date();
@@ -119,19 +120,22 @@ class Info extends Component<Props> {
     }
     goChat = () => {
         console.log('lo que mando para el chat', this.state.userActive);
-        this.props.navigation.navigate('Home', { userActive: JSON.stringify(this.state.userActive)});
+        this.props.navigation.navigate('Home', { userActive: JSON.stringify(this.state.userActive),  });
     }
-    
     renderUser = ({ item, index }) => {
         let css = [styles.userItem];
-       // if (index === this.state.indexActive + 1) css = [styles.userItemRight];
-       // if (index === this.state.indexActive - 1) css = [styles.userItemLeft];
-        if (index === this.state.indexActive) css = [styles.userItemActive];
+        let textStyle = [styles.userTitle];
+        // if (index === this.state.indexActive + 1) css = [styles.userItemRight];
+        // if (index === this.state.indexActive - 1) css = [styles.userItemLeft];
+        if (index === this.state.indexActive){
+            css = [styles.userItemActive];
+            textStyle.push(styles.userTitleActive);
+        } 
 
         return (
             <View style={styles.itemViewParent}>
                 <TouchableOpacity style={css} onPress={() => { this.changeUserActive(item, index) }}>
-                    <Text style={styles.userTitle}>{item.name.split(' ')[0]}</Text>
+                    <Text style={textStyle}>{item.name.split(' ')[0]}</Text>
                 </TouchableOpacity>
             </View>
         )
@@ -142,12 +146,8 @@ class Info extends Component<Props> {
             const u = item;
             this.setState({ userActive: u, loadingGifts: true, indexActive: index, refresh: !this.state.refresh, refreshUsers: !this.state.refreshUsers }, () => {
                 this.checkPayDates(today, this.state.userActive.actual_birth);
-                console.log(this.state.userActive);
-                console.log(this.state.user);
             });
-
         }
-
     }
     componentDidMount() {
         this.willFocusSubscription = this.props.navigation.addListener(
@@ -156,25 +156,21 @@ class Info extends Component<Props> {
                 AsyncStorage.getItem('user').then((user) => {
                     if (user) {
                         us = JSON.parse(user);
-                        console.log('el user del async storage didfocus', us);
                         this.setState({ user: { _id: us.key, name: us.name, avatar: us.avatar } });
                         this.props.navigation.setParams({ avatar: this.state.user.avatar });
                     }
                 });
-                console.log('oe esto entro al focus');
             }
         );
         AsyncStorage.getItem('user').then((user) => {
             if (user) {
                 u = JSON.parse(user);
                 this.setState({ user: u }, () => {
-                    console.log('el user del async storage didfocus', u);
                     this.props.navigation.setParams({ avatar: u.avatar });
                     this.usersSubscription = this.refUsers.onSnapshot(this.onUsersUpdate, (error) => {
                         alert('Firebase connection error')
                     });
                 });
-
             }
         }).catch((e) => { alert(e) });
     }
@@ -205,41 +201,20 @@ class Info extends Component<Props> {
                     data={this.state.users}
                     renderItem={item => this.renderUser(item)}
                 />
-                <View>
-                    <CountDown
-                        until={this.state.timeToBirthday}
-                        onFinish={() => this.reloadUsers}
-                        size={18}
-                        style={{ marginTop: 10 }}
-                        digitStyle={(this.daysToBirthday<=5)? styles.countClose: styles.countOpen}
-                        digitTxtStyle={{ color: '#000' }}
-                        separatorStyle={{marginHorizontal: 5, color: '#fff'}}
-                        showSeparator= {true}
-                    />
-                </View>
-                {
+                { 
                     this.state.userActive !== undefined && this.state.userActive !== null && this.state.user !== undefined && this.state.daysToBirthday !== undefined && (
                         <GiftsInfo user={this.state.user} navigation={this.props.navigation} userActive={this.state.userActive} users={this.state.users} daysToBirthday={this.state.daysToBirthday}></GiftsInfo>
                     )
                 }
-                <View style={styles.bottomBar}>
-                    <TouchableOpacity onPress={() => { this.props.navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
-                        <Image source={profileIcon} style={{ width: 28, height: 28 }} />
-                    </TouchableOpacity>
-
-                    {this.state.daysToBirthday<=30 &&this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.createGift} style={{ paddingHorizontal: 5, paddingVertical: 15, marginHorizontal: 45 }} >
-                        <Image source={addIcon} style={{ width: 28, height: 28 }} />
-                    </TouchableOpacity>)
-                    }
-                    {this.state.daysToBirthday<=30 &&this.state.userActive.key !== this.state.user._id && (<TouchableOpacity onPress={this.goChat} style={{ paddingHorizontal: 5, paddingVertical: 15 }} >
-                        <Image source={chatIcon} style={{ width: 30, height: 28 }} />
-                    </TouchableOpacity>
-                    )
-                    }
-                </View> 
- 
+                <BottomBar 
+                userActive={this.state.userActive}  
+                user={this.state.user} 
+                alert={this.state.alert} 
+                alertFn={()=>{this.setState({alert:true})}}
+                navigation={this.props.navigation}/>
+                <AlertCountdown onFinish={this.reloadUsers} visible={this.state.alert} onPress={()=>{this.setState({alert: false})}} date={JSON.parse(JSON.stringify(this.state.userActive.actual_birth))}/>
             </View>)
-    } 
+    }
 }
 const styles = StyleSheet.create({
     container: {
@@ -248,10 +223,10 @@ const styles = StyleSheet.create({
     bottomBar: {
         backgroundColor: '#FAFAFA',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-around',
         flexDirection: 'row',
         position: 'absolute',
-        bottom:0,
+        bottom: 0,
         width: width
     },
     addBtn: {
@@ -271,51 +246,35 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     usersList: {
-        maxHeight: 47,
-        minHeight: 47
-    },
-    userItem: {
-        backgroundColor: '#f5f5f5',
-        paddingVertical: 10,
-        paddingHorizontal: 28,
-        maxHeight: 47,
-        minHeight: 47,
-        minWidth: (width / 3),
-    },
-    userItemRight: {
-        backgroundColor: '#f5f5f5',
-        paddingVertical: 10,
-        paddingHorizontal: 28,
-        maxHeight: 47,
-        minHeight: 47,
-        minWidth: (width / 2) + (width / 4),
-        borderBottomLeftRadius: 10,
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10
-    },
-    userItemLeft: {
-        backgroundColor: '#f5f5f5',
-        maxHeight: 47,
-        paddingVertical: 10,
-        paddingHorizontal: 28,
-        borderBottomRightRadius: 10,
-        minWidth: (width / 2) + (width / 4),
-        minHeight: 47,
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10
+        marginTop: 10,
+        maxHeight: 40,
+        minHeight: 40,
+        marginLeft: 30
     },
     userTitle: {
         fontFamily: 'Lato-Bold',
         fontSize: 18,
         textAlign: 'center'
     },
+    userTitleActive:{
+        fontWeight: 'bold'
+    },
+    userItem: {
+        backgroundColor: '#fff',
+        paddingVertical: 3,
+        paddingHorizontal: 28,
+        minWidth: (width / 2) - 30,
+        borderWidth: 1,
+        borderColor: '#fff'
+    },
     userItemActive: {
         backgroundColor: '#fff',
-        paddingVertical: 10,
-        paddingHorizontal: 28,
-        minWidth: (width / 3),
-        borderBottomWidth: 3,
-        borderColor: '#fff'
+        paddingVertical: 3,
+        paddingHorizontal: 15,
+        minWidth: (width / 2) - 30,
+        borderColor: '#000',
+        borderWidth: 1,
+        borderRadius: 20
     },
     itemViewParent: {
         borderTopLeftRadius: 10,
@@ -411,20 +370,6 @@ const styles = StyleSheet.create({
     userLink: {
         marginTop: 5,
         marginLeft: 5
-    },
-    countOpen:{
-        backgroundColor: '#fff',
-        borderWidth: 2,
-        borderColor: '#000',
-        borderRadius: 10,
-        marginHorizontal: 0
-    },
-    countClose:{
-        backgroundColor: '#fff',
-        borderWidth: 2,
-        borderColor: '#EB2626',
-        borderRadius: 10,
-        marginHorizontal: 0
     }
 
 });

@@ -8,6 +8,9 @@ import firebase from '../Firebase';
 import ImagePicker from 'react-native-image-picker';
 import RNFetchBlob from 'react-native-fetch-blob';
 import AsyncStorage from '@react-native-community/async-storage';
+import BottomBar from '../components/bottomBar';
+import AlertCountdown from '../components/alertCountdown';
+import MyButton from '../components/myButton';
 type Props = {};
 const originalXMLHttpRequest = window.XMLHttpRequest;
 class EditGift extends Component<Props> {
@@ -16,6 +19,7 @@ class EditGift extends Component<Props> {
     this.props.navigation;
     this.gift = JSON.parse(this.props.navigation.getParam('gift'));
     this.ref = firebase.firestore().collection('gifts');
+
     console.log('las props', this.gift);
     this.state = {
       link: this.gift.link,
@@ -27,19 +31,24 @@ class EditGift extends Component<Props> {
       nameError: '',
       creator: this.gift.creator,
       price: this.gift.price,
-      description: this.gift.description,
       isLoading: false,
       users: [],
       loading: false,
-      descriptionError: '',
       linkError: '',
-      priceError: ''
+      priceError: '',
+      alert: false
     };
   }
   static navigationOptions = {
     header: null
   }
   componentDidMount() {
+    AsyncStorage.getItem('user').then((user) => {
+      if (user) { 
+        us = JSON.parse(user);
+        this.setState({ user: { _id: us.key, name: us.name, avatar: us.avatar } });
+      } 
+    });
   }
   handleChoosePhoto = () => {
     const options = {
@@ -85,7 +94,6 @@ class EditGift extends Component<Props> {
           date: firebase.firestore.FieldValue.serverTimestamp(),
           for_user: this.gift.for_user,
           name: this.state.name,
-          description: this.state.description,
           link: this.state.link.toLowerCase(),
           price: this.state.price,
           photo: url,
@@ -129,7 +137,6 @@ class EditGift extends Component<Props> {
               for_user: this.gift.for_user,
               name: this.state.name,
               photo: this.gift.photo,
-              description: this.state.description,
               link: this.state.link.toLowerCase(),
               price: this.state.price,
             }).then(res => {
@@ -186,71 +193,77 @@ class EditGift extends Component<Props> {
     console.log(this.gift);
     console.log(this.state.photo_init);
     return (
-      <ScrollView>
-        <View style={styles.container}>
-          <TextInput
-            style={styles.input}
-            placeholder="Name"
-            value={this.state.name}
-            onChangeText={(text) => { this.setState({ 'name': text }) }}
-          />
-          <TextInput
-            style={styles.input}
-            textContentType={'URL'}
-            placeholder="Link"
-            value={this.state.link}
-            onChangeText={(text) => { this.setState({ 'link': text }) }}
-          />
-          <Text style={(this.state.linkError !== '') ? [styles.errorText] : []}>{this.state.linkError}</Text>
-          <TextInput
-            placeholder="Price"
-            style={styles.input}
-            keyboardType={'numeric'}
-            value={this.state.price}
-            onChangeText={(text) => { this.setState({ 'price': text }) }}
-          />
-          <Text style={(this.state.priceError !== '') ? [styles.errorText] : []}>{this.state.priceError}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Description"
-            multiline={true}
-            numberOfLines={3}
-            onChangeText={(text) => this.setState({ 'description': text })}
-            value={this.state.description}
-            editable={!this.state.loading}
-          />
-          <Text style={(this.state.descriptionError !== '') ? [styles.errorText] : []}>{this.state.descriptionError}</Text>
-          {
-            this.state.photo !== null && (
-              <View style={{ alignItems: 'center', maxHeight: 200 }}>
-                <Image
-                  style={styles.photo}
-                  source={{ uri: this.state.photo.uri }}
-                />
-              </View>
-            )
-          }
-          {
-            this.state.photo === null && this.gift.photo !== null && this.gift.photo !== undefined && (
-              <View style={{ alignItems: 'center', maxHeight: 200 }}>
-                <Image
-                  style={styles.photo}
-                  source={{ uri: this.gift.photo }}
-                />
-              </View>
-            )
-          }
-          <TouchableOpacity style={styles.btn} onPress={this.handleChoosePhoto} disabled={this.state.isLoading}>
-            <Text style={[styles.titleBtn, { color: "#fff" }]}>{(this.state.photo === null && this.gift.photo) ? 'Open Gallery' : 'Change Photo'}</Text>
-          </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <View style={{marginBottom: 60}}>
+          <ScrollView>
+            <View style={styles.container}>
+              <TextInput
+                style={styles.input}
+                placeholder="Name"
+                value={this.state.name}
+                onChangeText={(text) => { this.setState({ 'name': text }) }}
+              />
+              <TextInput
+                style={styles.input}
+                textContentType={'URL'}
+                placeholder="Link"
+                value={this.state.link}
+                onChangeText={(text) => { this.setState({ 'link': text }) }}
+              />
+              <Text style={(this.state.linkError !== '') ? [styles.errorText] : [{ display: 'none' }]}>{this.state.linkError}</Text>
+              <TextInput
+                placeholder="Price"
+                style={styles.input}
+                keyboardType={'numeric'}
+                value={this.state.price}
+                onChangeText={(text) => { this.setState({ 'price': text }) }}
+              />
+              <Text style={(this.state.priceError !== '') ? [styles.errorText] : [{ display: 'none' }]}>{this.state.priceError}</Text>
+              {
+                this.state.photo !== null && (
+                  <View style={{ alignItems: 'center', maxHeight: 200, marginTop: 20 }}>
+                    <Image
+                      style={styles.photo}
+                      source={{ uri: this.state.photo.uri }}
+                    />
+                  </View>
+                )
+              }
+              {
+                this.state.photo === null && this.gift.photo !== null && this.gift.photo !== undefined && (
+                  <View style={{ alignItems: 'center', maxHeight: 200, marginTop: 20 }}>
+                    <Image
+                      style={styles.photo}
+                      source={{ uri: this.gift.photo }}
+                    />
+                  </View>
+                )
+              }
 
-          <TouchableOpacity style={styles.btnBlack} onPress={this.save} disabled={this.state.isLoading}>
-            <Text style={[styles.titleBtn, { color: "#fff", marginBottom: 20 }]}>Update</Text>
-          </TouchableOpacity>
-          <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.isLoading) ? [styles.loading] : [styles.loadingoff]} />
+              <MyButton style={{ marginTop: 30 }} 
+              onPress={this.handleChoosePhoto} 
+              disabled={this.state.isLoading} 
+              title={(this.state.photo === null && this.gift.photo === null) ? 'Open Gallery' : 'Change Photo'} />
+              <MyButton style={{ marginTop: 30 }}
+                onPress={this.save}
+                disabled={this.state.isloading} title={'Update'} />
+              <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.isLoading) ? [styles.loading] : [styles.loadingoff]} />
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
-    ); 
+        <BottomBar
+          userActive={this.gift.for_user}
+          user={this.state.user}
+          alert={this.state.alert}
+          alertFn={() => { this.setState({ alert: true }) }}
+          navigation={this.props.navigation} />
+        {
+          this.forUser !== undefined && ( 
+            <AlertCountdown visible={this.state.alert} onPress={() => { this.setState({ alert: false }) }} date={this.gift.for_user.actual_birth} />
+          )
+        }
+      </View>
+    );
   }
 }
 
@@ -282,7 +295,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: 290,
     borderBottomWidth: 1,
-    borderColor: '#000',
+    borderColor: 'rgba(0,0,0,0.5)',
     fontSize: 18,
     fontFamily: "Lato-Regular"
   },
@@ -305,19 +318,5 @@ const styles = StyleSheet.create({
     color: '#d9534f'
   },
 
-  btn: {
-    width: 290,
-    backgroundColor: "#26EB96",
-    borderRadius: 10,
-    paddingVertical: 20,
-    marginTop: 30,
-  },
-  btnBlack: {
-    width: 290,
-    backgroundColor: "#000",
-    borderRadius: 10,
-    paddingVertical: 20,
-    marginTop: 30,
-  },
 });
 export default EditGift;

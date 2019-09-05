@@ -3,18 +3,24 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, ScrollView, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, ScrollView, Text, View, TextInput, TouchableOpacity, Dimensions, ActivityIndicator, Image } from 'react-native';
 import firebase from '../Firebase';
 import ImagePicker from 'react-native-image-picker';
-import RNFetchBlob from 'react-native-fetch-blob';
+import RNFetchBlob from 'react-native-fetch-blob'; 
 import AsyncStorage from '@react-native-community/async-storage';
+import BottomBar from '../components/bottomBar';
+import AlertCountdown from '../components/alertCountdown';
+import MyButton from '../components/myButton';
+
+const { height, width } = Dimensions.get('window');
 type Props = {};
 const originalXMLHttpRequest = window.XMLHttpRequest;
 class NewGift extends Component<Props> {
   constructor(props) {
     super(props);
-    this.props.navigation
-    this.forUser = JSON.parse(this.props.navigation.getParam('user'));
+    this.props.navigation;
+    this.forUser = JSON.parse(this.props.navigation.state.params.userActive);
+    console.log(this.forUser);
     this.ref = firebase.firestore().collection('gifts');
     this.refMessages = firebase.firestore().collection('messages');
     this.state = {
@@ -26,22 +32,27 @@ class NewGift extends Component<Props> {
       nameError: '',
       creator: null,
       price: '',
-      description: '',
       isLoading: false,
       users: [],
       loading: false,
-      descriptionError: '',
       linkError: '',
-      priceError: ''
+      priceError: '',
+      alert: false,
     };
   }
   static navigationOptions = {
     header: null
   }
   componentDidMount() {
+    AsyncStorage.getItem('user').then((user) => {
+      if (user) { 
+        us = JSON.parse(user);
+        this.setState({ user: { _id: us.key, name: us.name, avatar: us.avatar } });
+      } 
+    });
   }
   handleChoosePhoto = () => {
-    const options = {
+    const options = { 
       noData: true,
     }
     ImagePicker.launchImageLibrary(options, response => {
@@ -52,7 +63,7 @@ class NewGift extends Component<Props> {
       }
     })
   }
-  nameGen = () =>{
+  nameGen = () => {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
   }
   uploadPhoto = (currentUser) => {
@@ -77,20 +88,19 @@ class NewGift extends Component<Props> {
       .then(() => {
         uploadBlob.close()
         return imageRef.getDownloadURL();
-      }).then((url)=>{
+      }).then((url) => {
         window.XMLHttpRequest = originalXMLHttpRequest;
         this.ref.add({
           creator: currentUser,
           date: firebase.firestore.FieldValue.serverTimestamp(),
           for_user: this.forUser,
           name: this.state.name,
-          description: this.state.description,
           link: this.state.link.toLowerCase(),
           price: this.state.price,
           photo: url,
           vote_counter: 0,
         }).then((docRef) => {
-          const text = `I suggest a gift\n ${this.state.link} \n ${(this.state.description !== '') ? this.state.description : ''} \n please go to the info section and vote!!!`;
+          const text = `I suggest a gift\n ${this.state.link}`;
           const message = {
             text: text,
             user: {
@@ -141,18 +151,17 @@ class NewGift extends Component<Props> {
           if (this.state.photo !== null) {
             this.uploadPhoto(currentUser);
           }
-          else{
+          else {
             this.ref.add({
               creator: currentUser,
               date: firebase.firestore.FieldValue.serverTimestamp(),
               for_user: this.forUser,
               name: this.state.name,
-              description: this.state.description,
               link: this.state.link.toLowerCase(),
               price: this.state.price,
               vote_counter: 0,
             }).then((docRef) => {
-              const text = `I suggest a gift\n ${this.state.link} \n ${(this.state.description !== '') ? this.state.description : ''} \n please go to the info section and vote!!!`;
+              const text = `I suggest a gift\n ${this.state.link}`;
               const message = {
                 text: text,
                 user: {
@@ -171,7 +180,7 @@ class NewGift extends Component<Props> {
                 this.props.navigation.goBack();
               }).catch((e) => {
                 alert(e);
-  
+
               });
             })
               .catch((error) => {
@@ -186,7 +195,7 @@ class NewGift extends Component<Props> {
         }
         catch (error) {
           alert('No internet Connection' + error);
-          this.setState({isLoading: false});
+          this.setState({ isLoading: false });
         }
       }).catch(() => { alert('Problem with the user stored in the phone') });
     }
@@ -200,7 +209,7 @@ class NewGift extends Component<Props> {
       return false;
     }
     else {
-      this.setState({ linkError: "" });
+      this.setState({ linkError: "" }); 
     }
     if (this.state.link === '') {
       this.setState({ linkError: "You have to add a link" });
@@ -218,64 +227,67 @@ class NewGift extends Component<Props> {
     }
     else {
       this.setState({ priceError: "" });
-    }
-    return true;
-  }
+    } 
+    return true; 
+  } 
 
   render() {
     return (
-      <ScrollView>
-        <View style={styles.container}>
-          <TextInput
-            style={styles.input}
-            placeholder="Name"
-            onChangeText={(text) => { this.setState({ 'name': text }) }}
-          />
-          <TextInput
-            style={styles.input}
-            textContentType={'URL'}
-            placeholder="Link"
-            onChangeText={(text) => { this.setState({ 'link': text }) }}
-          />
-          <Text style={(this.state.linkError !== '') ? [styles.errorText] : []}>{this.state.linkError}</Text>
-          <TextInput
-            placeholder="Price"
-            style={styles.input}
-            keyboardType={'numeric'}
-            onChangeText={(text) => { this.setState({ 'price': text }) }}
-          />
-          <Text style={(this.state.priceError !== '') ? [styles.errorText] : []}>{this.state.priceError}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Description"
-            multiline={true}
-            numberOfLines={3}
-            onChangeText={(text) => this.setState({ 'description': text })}
-            value={this.state.description}
-            editable={!this.state.loading}
-          />
-          <Text style={(this.state.descriptionError !== '') ? [styles.errorText] : []}>{this.state.descriptionError}</Text>
+      <View style={{flex:1}}>
+        <View style={{marginBottom: 60}}>
+          <ScrollView>
+            <View style={styles.container}>
+              <TextInput
+                style={styles.input}
+                placeholder="Name"
+                onChangeText={(text) => { this.setState({ 'name': text }) }}
+              />
+              <TextInput
+                style={styles.input}
+                textContentType={'URL'}
+                placeholder="Link"
+                onChangeText={(text) => { this.setState({ 'link': text }) }}
+              />
+              <Text style={(this.state.linkError !== '') ? [styles.errorText] : [{display:'none'}]}>{this.state.linkError}</Text>
+              <TextInput
+                placeholder="Price"
+                style={styles.input}
+                keyboardType={'numeric'}
+                onChangeText={(text) => { this.setState({ 'price': text }) }}
+              />
+              <Text style={(this.state.priceError !== '') ? [styles.errorText] : []}>{this.state.priceError}</Text>
+              {
+                this.state.photo !== null && (
+                  <View style={{ alignItems: 'center', maxHeight: 200 }}>
+                    <Image
+                      style={styles.photo}
+                      source={{ uri: this.state.photo.uri }}
+                    />
+                  </View>
+                )
+              } 
+
+              <MyButton style={{marginTop: 20}} onPress={this.handleChoosePhoto} disabled={this.state.loading} title={(this.state.photo === null) ? 'Open Gallery' : 'Change Photo'}/>
+              <MyButton style={{marginTop: 30}} 
+              onPress={this.save} 
+              disabled={this.state.isloading} title={'Create'}/>
+
+              <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.isLoading) ? [styles.loading] : [styles.loadingoff]} />
+            </View>
+          </ScrollView>
+        </View>
+        <BottomBar
+          userActive={this.forUser}
+          user={this.state.user}
+          alert={this.state.alert}
+          alertFn={() => { this.setState({ alert: true }) }}
+          navigation={this.props.navigation} />
           {
-            this.state.photo !== null && (
-              <View style={{ alignItems: 'center', maxHeight: 200 }}>
-                <Image
-                  style={styles.photo}
-                  source={{ uri: this.state.photo.uri }}
-                />
-              </View>
+            this.forUser!==undefined && (
+              <AlertCountdown visible={this.state.alert} onPress={() => { this.setState({ alert: false }) }} date={this.forUser.actual_birth} />
             )
           }
-
-          <TouchableOpacity style={styles.btn} onPress={this.handleChoosePhoto} disabled={this.state.isLoading}>
-            <Text style={[styles.titleBtn, { color: "#fff" }]}>{(this.state.photo===null)?'Open Gallery': 'Change Photo'}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.btnBlack} onPress={this.save} disabled={this.state.isLoading}>
-            <Text style={[styles.titleBtn, { color: "#fff", marginBottom: 20 }]}>Create</Text>
-          </TouchableOpacity>
-          <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.isLoading) ? [styles.loading] : [styles.loadingoff]} />
-        </View>
-      </ScrollView>
+      </View>
     );
   }
 }
@@ -308,7 +320,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: 290,
     borderBottomWidth: 1,
-    borderColor: '#000',
+    borderColor: 'rgba(0,0,0,0.5)',
     fontSize: 18,
     fontFamily: "Lato-Regular"
   },
@@ -329,21 +341,6 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: 10,
     color: '#d9534f'
-  },
-
-  btn: {
-    width: 290,
-    backgroundColor: "#26EB96",
-    borderRadius: 10,
-    paddingVertical: 20,
-    marginTop: 30,
-  },
-  btnBlack: {
-    width: 290,
-    backgroundColor: "#000",
-    borderRadius: 10,
-    paddingVertical: 20,
-    marginTop: 30,
-  },
+  }
 });
 export default NewGift;

@@ -3,17 +3,20 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Modal,Button, FlatList, Image, TouchableHighlight, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Modal, Button, FlatList, Image, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
-import { infoIcon, giftIcon, profileIcon } from '../images';
 import firebase from '../Firebase';
 import AsyncStorage from '@react-native-community/async-storage';
+import AlertCountdown from '../components/alertCountdown';
+import BottomBar from '../components/bottomBar';
 type Props = {};
+
+const { height, width } = Dimensions.get('window');
 class Home extends Component<Props> {
   constructor(props) {
     super(props);
     this.props.navigation;
-    this.userActive = JSON.parse(this.props.navigation.getParam('userActive'));
+    this.userActive = JSON.parse(this.props.navigation.state.params.userActive);
     this.refUsers = firebase.firestore().collection('users');
     this.refmessages = firebase.firestore().collection('messages').where('for_user.key', '==', this.userActive.key).where('birth_date', '==', JSON.parse(JSON.stringify(this.userActive.actual_birth)));
     this.messagesSubscription = null;
@@ -21,6 +24,7 @@ class Home extends Component<Props> {
     this.state = {
       users: [],
       user: null,
+      alert: false,
       isLoading: true,
     };
   }
@@ -30,7 +34,7 @@ class Home extends Component<Props> {
       headerTitle: (
         <View style={styles.headerTitle}>
           <Text style={styles.title}>{(params.name) ? params.name + "'s Birthday" : ''}</Text>
-          
+
         </View>
       ),
       headerStyle: {
@@ -43,30 +47,36 @@ class Home extends Component<Props> {
       },
     }
   };
-
+  createGift = () => {
+    const { name, actual_birth, key } = this.userActive;
+    console.log(this.userActive);
+    this.props.navigation.navigate('NewGift', {
+      user: JSON.stringify({ name, actual_birth, key })
+    });
+  };
   onUsersUpdate = (querySnapshot) => {
     const users = [];
     querySnapshot.forEach((user) => {
       const { name, birth_date, avatar } = user.data();
-        users.push({
-          key: user.id,
-          name,
-          birth_date,
-          avatar
-        });
+      users.push({
+        key: user.id,
+        name,
+        birth_date,
+        avatar
+      });
     });
     this.setState({
       users,
       isLoading: false,
     });
-      this.props.navigation.setParams({
-        name: this.userActive.name.split(' ')[0]
-      });
-      if (this.messagesSubscription !== null) this.messagesSubscription();
-      this.messagesSubscription = this.refmessages.onSnapshot(this.onCollectionUpdate);
+    this.props.navigation.setParams({
+      name: this.userActive.name.split(' ')[0]
+    });
+    if (this.messagesSubscription !== null) this.messagesSubscription();
+    this.messagesSubscription = this.refmessages.onSnapshot(this.onCollectionUpdate);
   }
 
-  renderItem = ({ item, index }) => { 
+  renderItem = ({ item, index }) => {
     return (
       <View style={[styles.itemGenericView]}>
         <Text style={styles.itemText}>{item.name}</Text>
@@ -77,7 +87,7 @@ class Home extends Component<Props> {
   onCollectionUpdate = (querySnapshot) => {
     const messages = [];
     querySnapshot.forEach((m) => {
-      
+
       messages.push(
         this.parse(m)
       );
@@ -101,9 +111,9 @@ class Home extends Component<Props> {
     let timestamp = new Date();
     if (numberStamp) timestamp = numberStamp.toDate();
     // 3.
-    let u = this.state.users.find(us => us.key === user._id );
+    let u = this.state.users.find(us => us.key === user._id);
     let us = user;
-    if(u !==undefined){
+    if (u !== undefined) {
 
       console.log('el avatar del user', u);
       us.avatar = u.avatar;
@@ -117,27 +127,27 @@ class Home extends Component<Props> {
     return message;
   }
   componentDidMount() {
-    
+
     AsyncStorage.getItem('user').then((user) => {
       if (user) {
         u = JSON.parse(user);
         console.log('el user del async storage', u);
-        this.setState({ user: { _id: u.key, name: u.name, avatar:u.avatar } });
+        this.setState({ user: { _id: u.key, name: u.name, avatar: u.avatar } });
         this.usersSubscription = this.refUsers.onSnapshot(this.onUsersUpdate, (error) => {
           alert('Firebase connection error');
         });
-        this.props.navigation.setParams({avatar: this.state.user.avatar});
+        this.props.navigation.setParams({ avatar: this.state.user.avatar });
         this.willFocusSubscription = this.props.navigation.addListener(
           'didFocus',
           payload => {
             AsyncStorage.getItem('user').then((user) => {
               if (user) {
                 us = JSON.parse(user);
-                console.log('el user del async storage didfocus', us);  
-                this.setState({ user: { _id: us.key, name: us.name, avatar:us.avatar } });
-                this.props.navigation.setParams({avatar: this.state.user.avatar});
+                console.log('el user del async storage didfocus', us);
+                this.setState({ user: { _id: us.key, name: us.name, avatar: us.avatar } });
+                this.props.navigation.setParams({ avatar: this.state.user.avatar });
               }
-            });  
+            });
             console.log('oe esto entro al focus');
           }
         );
@@ -145,7 +155,7 @@ class Home extends Component<Props> {
           'willBlur',
           payload => {
             console.log('Se fue el home');
-          }   
+          }
         );
       }
     }).catch((e) => { alert(e) });
@@ -155,7 +165,7 @@ class Home extends Component<Props> {
       for (let i = 0; i < messages.length; i++) {
         const { text, user, _id } = messages[i];
         const for_user = this.state.users[0];
-        if (user.avatar === undefined) user.avatar = null;  
+        if (user.avatar === undefined) user.avatar = null;
         const message = {
           text,
           user,
@@ -198,11 +208,25 @@ class Home extends Component<Props> {
       );
     }
     return (
-          <GiftedChat
-              messages={this.state.messages}
-              onSend={this.send}
-              user={this.state.user}
-            />
+      <View style={{ flex: 1 }}>
+        <GiftedChat
+          messages={this.state.messages}
+          onSend={this.send}
+          user={this.state.user}
+        />
+        <View style={{ height: 65 }}></View>
+        <BottomBar
+          userActive={this.userActive}
+          user={this.state.user}
+          alert={this.state.alert}
+          alertFn={() => { this.setState({ alert: true }) }}
+          navigation={this.props.navigation} />
+        {
+          this.userActive !== undefined && (
+            <AlertCountdown containerStyle={{marginTop: -60}} visible={this.state.alert} onPress={() => { this.setState({ alert: false }) }} date={this.userActive.actual_birth} />
+          )
+        }
+      </View>
     );
   }
 }
@@ -224,6 +248,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Lato-Bold',
     fontSize: 18,
     marginLeft: 5
+  },
+  bottomBar: {
+    backgroundColor: '#FAFAFA',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 0,
+    width: width
   },
   userLink: {
     marginTop: 5,

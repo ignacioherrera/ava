@@ -3,24 +3,31 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, Button, TouchableOpacity, Image, Platform } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, Dimensions, TouchableOpacity, Image } from 'react-native';
 import ImagePicker from 'react-native-image-picker';
 import AsyncStorage from '@react-native-community/async-storage';
 import RNFetchBlob from 'react-native-fetch-blob';
 import firebase from '../Firebase';
 import { ScrollView } from 'react-native-gesture-handler';
+import BottomBar from '../components/bottomBar';
+import AlertCountdown from '../components/alertCountdown';
+const { height, width } = Dimensions.get('window');
 
 type Props = {};
 const originalXMLHttpRequest = window.XMLHttpRequest;
 class Profile extends Component<Props> {
   constructor(props) {
     super(props);
+    this.props.navigation;
     this.userRef = firebase.firestore().collection('users');
+    this.userActive = JSON.parse(this.props.navigation.state.params.userActive);
+    console.log(this.userActive);
   }
   state = {
     photo: null,
     loading: false,
     isLoading: true,
+    alert: false,
   }
   static navigationOptions = {
     title: 'Account',
@@ -46,8 +53,8 @@ class Profile extends Component<Props> {
     })
   }
   deleteUser = () => {
-  this.userRef.delete().then(r => { 
-      AsyncStorage.removeItem('user').then(()=>{
+    this.userRef.delete().then(r => {
+      AsyncStorage.removeItem('user').then(() => {
         this.props.navigation.navigate('AuthLoading');
       });
     });
@@ -106,13 +113,14 @@ class Profile extends Component<Props> {
   }
 
   componentDidMount() {
+
     AsyncStorage.getItem('user').then((user) => {
       if (user) {
         u = JSON.parse(user);
         console.log('el user del async storage', u);
         this.setState({ user: u, isLoading: false });
         this.userRef = this.userRef.doc(this.state.user.key);
-      } 
+      }
     }).catch((e) => { alert(e) });
   }
   render() {
@@ -123,41 +131,57 @@ class Profile extends Component<Props> {
       )
     }
     return (
-
-      <ScrollView style={styles.container}>
-        {photo !== null && (
-          <View style={{ alignItems: 'center' }}>
-            <Image
-              style={styles.avatar}
-              source={{ uri: photo.uri }}
-            />
-          </View>
-        )}
-        {
-          (!photo && this.state.user.avatar !== null && this.state.user.avatar!==undefined) && (
+      <View style={{ flex: 1 }}>
+        <View>
+          <ScrollView style={styles.container}>
+            {photo !== null && (
+              <View style={{ alignItems: 'center' }}>
+                <Image
+                  style={styles.avatar}
+                  source={{ uri: photo.uri }}
+                />
+              </View>
+            )}
+            {
+              (!photo && this.state.user.avatar !== null && this.state.user.avatar !== undefined) && (
+                <View style={{ alignItems: 'center' }}>
+                  <Image
+                    style={styles.avatar}
+                    source={{ uri: this.state.user.avatar }}
+                  />
+                </View>
+              )
+            }
             <View style={{ alignItems: 'center' }}>
-              <Image
-                style={styles.avatar}
-                source={{ uri: this.state.user.avatar }}
-              />
+              <TouchableOpacity style={[styles.btn]} onPress={this.handleChoosePhoto} disabled={this.state.loading}>
+                <Text style={[styles.title, { color: "#fff" }]}>Change Photo</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.btn]} onPress={this.uploadPhoto} disabled={this.state.loading || this.state.photo === null}>
+                <Text style={[styles.title, { color: "#fff" }]}>Save Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.btn]} onPress={() => { this.props.navigation.navigate('Users') }}>
+                <Text style={[styles.title, { color: "#fff" }]}>View users registered</Text>
+              </TouchableOpacity>
+
             </View>
+            <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
+          </ScrollView>
+        </View>
+        <BottomBar
+          userActive={this.userActive}
+          user={this.state.user}
+          alert={this.state.alert}
+          alertFn={() => { this.setState({ alert: true }) }}
+          navigation={this.props.navigation} />
+        {
+          this.userActive !== undefined && (
+            <AlertCountdown visible={this.state.alert} onPress={() => { this.setState({ alert: false }) }} date={this.userActive.actual_birth} />
           )
         }
-        <View style={{ alignItems: 'center' }}>
-          <TouchableOpacity style={[styles.btn]} onPress={this.handleChoosePhoto} disabled={this.state.loading}>
-            <Text style={[styles.title, { color: "#fff" }]}>Change Photo</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.btn]} onPress={this.uploadPhoto} disabled={this.state.loading || this.state.photo === null}>
-            <Text style={[styles.title, { color: "#fff" }]}>Save Photo</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn]} onPress={() => { this.props.navigation.navigate('Users') }}>
-            <Text style={[styles.title, { color: "#fff" }]}>View users registered</Text>
-          </TouchableOpacity>
-          
-        </View>
-        <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
-      </ScrollView>
+
+      </View>
     );
   }
 }

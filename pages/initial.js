@@ -65,7 +65,8 @@ const styles = StyleSheet.create({
   text: {
     color: '#000',
     fontSize: 20,
-    fontFamily: 'Lato-Bold'
+    fontFamily: 'Lato-Bold',
+    fontWeight: 'bold'
   }
 });
 export default Initial;

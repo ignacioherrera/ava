@@ -41,7 +41,7 @@ class GiftsInfo extends Component<Props> {
 
     renderGift = ({ item, index }) => {
         return (
-            <View style={(index === this.state.gifts.length - 1) ? [styles.giftView, styles.lastItem] : [styles.giftView]} >
+            <View style={styles.giftView} >
                 <View style={styles.giftTopBar}>
                     <View style={{
                         flexDirection: 'row',
@@ -100,7 +100,7 @@ class GiftsInfo extends Component<Props> {
                     item.photo !== undefined && (
                         <View style={{
                             alignItems: 'center',
-                            height: 200,
+                            height: 350,
                         }}>
                             <Image
                                 style={styles.photo}
@@ -254,17 +254,17 @@ class GiftsInfo extends Component<Props> {
         if (this.props.user !== undefined && this.props.userActive !== undefined && this.props.user._id === this.props.userActive.key) {
             return (
                 <View style={{ marginTop: 50 }}>
-                    <Text style={{ fontFamily: 'Lato-Regular', fontSize: 18, color: '#666666', textAlign: 'center' }}>Your friends are planning to give you something awesome here!</Text>
+                    <Text style={{ fontFamily: 'Lato-Regular',fontWeight:'bold', fontSize: 18, color: '#666666', textAlign: 'center' }}>Your friends are planning to give you something awesome here!</Text>
                 </View>
             )
         }
-        if (this.props.daysToBirthday !== undefined && this.props.daysToBirthday > 30) {
+       /* if (this.props.daysToBirthday !== undefined && this.props.daysToBirthday > 30) {
             return (
                 <View style={{ marginTop: 50 }}>
                     <Text style={{ fontFamily: 'Lato-Regular', fontSize: 18, color: '#666666', textAlign: 'center' }}>Soon we will prepare an incredible gift here</Text>
                 </View>
             )
-        }
+        }*/
         return (
             <View style={styles.container}>
                 <FlatList
@@ -275,7 +275,7 @@ class GiftsInfo extends Component<Props> {
                 />
             </View>
         )
-    }
+    } 
 
 }
 const styles = StyleSheet.create({
@@ -328,12 +328,15 @@ const styles = StyleSheet.create({
         fontFamily: 'Lato-Bold',
         fontSize: 18,
         marginBottom: 3,
-        color: '#000'
+        color: '#000',
+        fontWeight: 'bold'
     },
     giftDescription: {
         fontSize: 12,
-        fontFamily: 'Lato-Regular',
+        fontFamily: 'Lato-Bold',
         color: '#000',
+        fontWeight: 'bold'
+
     },
     voteButton: {
         paddingHorizontal: 10,
@@ -343,9 +346,10 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: 'Lato-Bold',
         color: '#000',
+        fontWeight: 'bold'
     },
     giftList: {
-        marginTop: 15
+        marginBottom: 80
     },
     giftLink: {
         fontSize: 19,
@@ -371,13 +375,8 @@ const styles = StyleSheet.create({
     },
     giftView: {
         borderWidth: 0,
-        borderColor: "#000",
-        borderRadius: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#D0D0D0',
-        marginVertical: 10,
         paddingBottom: 10,
-        paddingTop: 5
+        paddingTop: 0
     },
     itemGenericView: {
         alignItems: 'center',
