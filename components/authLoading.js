@@ -29,7 +29,7 @@ export default class AuthLoadingScreen extends React.Component {
               AsyncStorage.getItem('user').then(value=>{
                 if (value !== null) {
 
-                  this.props.navigation.navigate('Sign');
+                  this.props.navigation.navigate('Info');
                 }
                 else {
                   this.props.navigation.navigate('Sign');
