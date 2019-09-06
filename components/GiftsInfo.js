@@ -34,8 +34,6 @@ class GiftsInfo extends Component<Props> {
         return false;
     }
     edit = (gift) => {
-        console.log(gift);
-        console.log(this.props);
         this.props.navigation.navigate('EditGift', { gift: JSON.stringify(gift) });
     }
 
@@ -111,7 +109,7 @@ class GiftsInfo extends Component<Props> {
                 }
                 <View style={{ flexDirection: 'row', paddingHorizontal: 25, justifyContent: 'space-between', alignItems: 'center', marginTop: 15 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <TouchableOpacity disabled={this.state.loadingGifts} onPress={() => { this.vote(item.key, this.props.userActive) }} style={styles.voteButton}>
+                        <TouchableOpacity disabled={this.state.loadingGifts || this.props.daysToBirthday <= 5} onPress={() => { this.vote(item.key, this.props.userActive) }} style={styles.voteButton}>
                             <Image source={(this.checkVotes(item.key)) ? likeOnIcon : likeOffIcon} style={{ width: 23, height: 20 }} />
                         </TouchableOpacity>
                         <Text style={styles.giftVotes}>{(item.vote_counter === 1) ? item.vote_counter + ' like' : item.vote_counter + ' likes'}</Text>
@@ -130,7 +128,6 @@ class GiftsInfo extends Component<Props> {
             const { description, date, link, price, name, creator, photo, vote_counter, for_user } = gift.data();
             let us = creator;
             if (this.props.users !== undefined) {
-                console.log('users', this.props.users, 'creator', creator);
                 let u = this.props.users.find(us => us.key === creator.key);
                 if (u !== undefined) {
                     us.avatar = u.avatar;
@@ -152,7 +149,6 @@ class GiftsInfo extends Component<Props> {
         gifts.sort(function (a, b) {
             return b.vote_counter - a.vote_counter;
         });
-        console.log('Regalos', gifts);
         this.setState({
             gifts,
             isLoading: false,
@@ -166,17 +162,13 @@ class GiftsInfo extends Component<Props> {
             const { gift_key, for_user } = vote.data();
             votes.push({ gift_key, for_user, key: vote.id });
         });
-        console.log('votes', votes);
         this.setState({
             votes,
         });
     }
 
     componentDidMount() {
-        console.log('propiedades', this.props);
         if (this.props.userActive !== undefined && this.props.user !== undefined && this.props.daysToBirthday !== undefined) {
-            console.log('el user', this.props.user);
-            console.log('dias ', this.props.daysToBirthday);
             this.refVotes = firebase.firestore().collection('users').doc(this.props.user._id).collection('votes');
             this.voteSubscription = this.refVotes.onSnapshot(this.onVoteUpdate, (error) => {
                 alert('Firebase connection error')
@@ -211,9 +203,6 @@ class GiftsInfo extends Component<Props> {
         });
     };
     vote = (giftKey, user) => {
-        console.log(this.state.votes);
-        console.log(this.refVotes);
-        console.log(giftKey, user);
         if (this.checkVotes(giftKey)) {
             const element = this.state.votes.find(k => k.gift_key === giftKey);
             firebase.firestore().runTransaction((transaction) => {
@@ -223,7 +212,6 @@ class GiftsInfo extends Component<Props> {
                 });
 
             }).then(() => {
-                console.log('todo ok');
             })
 
         }
@@ -235,7 +223,6 @@ class GiftsInfo extends Component<Props> {
                     transaction.update(this.refGifts.doc(giftKey), { vote_counter: firebase.firestore.FieldValue.increment(1) });
                 })
             }).then((r) => {
-                console.log(r);
             });
         }
 
@@ -253,18 +240,19 @@ class GiftsInfo extends Component<Props> {
         }
         if (this.props.user !== undefined && this.props.userActive !== undefined && this.props.user._id === this.props.userActive.key) {
             return (
-                <View style={{ marginTop: 50 }}>
+                <View style={{ marginTop: 120 }}>
                     <Text style={{ fontFamily: 'Lato-Regular',fontWeight:'bold', fontSize: 18, color: '#666666', textAlign: 'center' }}>Your friends are planning to give you something awesome here!</Text>
                 </View>
             )
         }
-       /* if (this.props.daysToBirthday !== undefined && this.props.daysToBirthday > 30) {
+        if (this.props.daysToBirthday !== undefined && this.props.daysToBirthday > 30) {
             return (
-                <View style={{ marginTop: 50 }}>
-                    <Text style={{ fontFamily: 'Lato-Regular', fontSize: 18, color: '#666666', textAlign: 'center' }}>Soon we will prepare an incredible gift here</Text>
+                <View style={{ marginTop: 120 }}>
+                    <Text style={{ fontFamily: 'Lato-Regular',fontWeight:'bold', fontSize: 18, color: '#666666', textAlign: 'center' }}>Soon we will prepare an</Text>
+                    <Text style={{ fontFamily: 'Lato-Regular',fontWeight:'bold', fontSize: 18, color: '#666666', textAlign: 'center' }}>incredible gift here</Text>
                 </View>
             )
-        }*/
+        }
         return (
             <View style={styles.container}>
                 <FlatList

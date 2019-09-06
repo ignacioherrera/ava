@@ -20,7 +20,6 @@ class EditGift extends Component<Props> {
     this.gift = JSON.parse(this.props.navigation.getParam('gift'));
     this.ref = firebase.firestore().collection('gifts');
 
-    console.log('las props', this.gift);
     this.state = {
       link: this.gift.link,
       photo: null,
@@ -55,7 +54,6 @@ class EditGift extends Component<Props> {
       noData: true,
     }
     ImagePicker.launchImageLibrary(options, response => {
-      console.log(response);
       if (response.uri) {
         this.setState({ photo: response }, () => {
         });
@@ -73,7 +71,6 @@ class EditGift extends Component<Props> {
     window.Blob = Blob;
     let uploadBlob = null;
     const name = this.state.photo.fileName.split('.');
-    console.log(this.nameGen + '.' + name[name.length - 1]);
     const imageRef = firebase.storage().ref('gifts').child(this.nameGen() + '.' + name[name.length - 1]);
     let mime = 'image/jpg';
     fs.readFile(image, 'base64')
@@ -101,7 +98,6 @@ class EditGift extends Component<Props> {
           this.props.navigation.goBack();
         })
           .catch((error) => {
-            console.log("Error adding document: ", error);
             this.setState({
               error: error,
               isLoading: false,
@@ -109,7 +105,6 @@ class EditGift extends Component<Props> {
           });
       })
       .catch((error) => {
-        console.log(error);
         this.setState({ isloading: false });
       })
   }
@@ -142,7 +137,6 @@ class EditGift extends Component<Props> {
             }).then(res => {
               this.props.navigation.goBack();
             }).catch((error) => {
-              console.log("Error adding document: ", error);
               this.setState({
                 error: error,
                 isLoading: false,
@@ -190,8 +184,6 @@ class EditGift extends Component<Props> {
   }
 
   render() {
-    console.log(this.gift);
-    console.log(this.state.photo_init);
     return (
       <View style={{ flex: 1 }}>
         <View style={{marginBottom: 60}}>

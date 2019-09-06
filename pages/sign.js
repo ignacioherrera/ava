@@ -3,11 +3,12 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, ScrollView, View, TextInput, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import firebase from '../Firebase';
 import AsyncStorage from '@react-native-community/async-storage';
-import { ScrollView } from 'react-native-gesture-handler';
+import { logoIcon } from '../images';
+import MyButton from '../components/myButton';
 type Props = {};
 class Sign extends Component<Props> {
   constructor(props) {
@@ -29,25 +30,24 @@ class Sign extends Component<Props> {
   static navigationOptions = {
     header: null
   }
-  componentDidMount(){
-    AsyncStorage.getItem('auth').then(auth=>{
-      const {uid} = JSON.parse(auth);
-      this.setState({auth: uid});
+  componentDidMount() {
+    AsyncStorage.getItem('auth').then(auth => {
+      const { uid } = JSON.parse(auth);
+      this.setState({ auth: uid });
     })
   }
-  formatDate = (d) =>{
-        month = '' + (d.getMonth() + 1),
-        day = '' + d.getDate(),
-        year = d.getFullYear();
+  formatDate = (d) => {
+    month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
     return [year, month, day].join('-');
-}
+  }
   save = () => {
     this.setState({
       loading: true,
     });
-    console.log('entor ljljlj', this.state.name, this.state.birth_date);
     if (this.state.name === '' || this.state.name === undefined) {
       this.setState({ error: 'The name is required' });
       this.setState({
@@ -71,13 +71,12 @@ class Sign extends Component<Props> {
         birth_date: this.formatDate(this.state.birth_date),
         uid: this.state.auth
       }).then((docRef) => {
-        console.log('respuesta al crear user', docRef);
         user = {
           key: docRef.id,
           name: this.state.name,
           birth_date: this.formatDate(this.state.birth_date),
           uid: this.state.auth
-        } 
+        }
         this.setState({
           name: '',
           birth_date: new Date(),
@@ -87,8 +86,7 @@ class Sign extends Component<Props> {
           this.props.navigation.navigate('Info');
         }).catch(() => { });
       })
-        .catch((error) => {  
-          console.log("Error adding document: ", error);
+        .catch((error) => {
           this.setState({
             error: error,
             isLoading: false,
@@ -109,7 +107,16 @@ class Sign extends Component<Props> {
     }
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Welcome</Text>
+        <ScrollView>
+          <View style={{
+            alignItems: 'center'
+          }}>
+          <Image
+          style={styles.avatar}
+          source={logoIcon}
+        />
+
+<Text style={styles.title}>Welcome to Ava</Text>
         <Text style={(this.state.error !== '') ? [styles.errorText] : []}>{this.state.error}</Text>
         <TextInput
           style={styles.input}
@@ -120,34 +127,43 @@ class Sign extends Component<Props> {
         />
         <Text style={(this.state.nameError !== '') ? [styles.errorText] : []}>{this.state.nameError}</Text>
 
-        <Text style={styles.label}>Birthday</Text>
         <DatePicker
-          style={{ width: 290 }}
+          style={{ width: 380, height: 28, marginTop:30}}
           mode={'date'}
           maximumDate={new Date()}
           date={this.state.birth_date}
           onDateChange={birth_date => this.setState({ birth_date })}
         />
-        <TouchableOpacity style={styles.btn} onPress={this.save} disabled={this.state.loading}>
-          <Text style={[styles.titleBtn, { color: "#fff" }]}>Create</Text>
-        </TouchableOpacity>
+
+        <MyButton title={'Create'} onPress={this.save} style={{marginVertical: 60}} disabled={this.state.loading}/>
+          </View>
+        
+        
+
         <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
+        </ScrollView>
       </View>
- 
+
     );
   }
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1
+  },
+  avatar: {
+    marginTop: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50
   },
   title: {
     fontSize: 24,
     textAlign: 'center',
-    fontFamily: 'Lato-Bold'
+    marginTop: 15,
+    fontFamily: 'Lato-Bold',
+    fontWeight: 'bold'
   },
   titleBtn: {
     fontSize: 22,
@@ -160,7 +176,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Lato-Regular',
     textAlign: 'left',
     width: 290,
-    marginVertical: 5
+    marginVertical: 10,
+    color: '#666666'
   },
   input: {
     marginTop: 20,

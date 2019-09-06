@@ -6,6 +6,8 @@ import React, {Component} from 'react';
 import {StyleSheet, Text, View, ScrollView,ActivityIndicator, TextInput, TouchableHighlight} from 'react-native';
 import firebase from '../Firebase';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import MyButton from '../components/myButton';
+import AsyncStorage from '@react-native-community/async-storage';
 
 type Props = {};
 
@@ -16,7 +18,9 @@ class CreateUser extends Component<Props> {
       email: '',
       password:'',
       error: false,
-      loading: false
+      loading: false,
+      err: '',
+
     };
   }
   static navigationOptions = {
@@ -26,7 +30,6 @@ class CreateUser extends Component<Props> {
     const regexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email === '' || !regexp.test(this.state.email)) {
       this.setState({ error: true });
-      console.log('wrong email', this.state.email);
 
       return false;
     }
@@ -44,15 +47,17 @@ class CreateUser extends Component<Props> {
       this.setState({loading: true});
       firebase.auth()
       .createUserWithEmailAndPassword(this.state.email, this.state.password)
-      .then(res=>{
-        console.log(res); 
+      .then(res=>{ 
         const user = {'uid':res.user.uid, password: this.state.password, email:this.state.email};
-        AsyncStorage.setItem('auth', JSON.stringify(user))
-        .then(()=>{
-          this.props.navigation.navigate('Initial');
-        })
+        AsyncStorage.multiRemove(['initial', 'user']).then(()=>{
+          AsyncStorage.setItem('auth', JSON.stringify(user))
+          .then(()=>{
+            this.props.navigation.navigate('Initial');
+          })
+        });
+        
       }).catch(err=>{
-        console.log(err);
+        this.setState({err: err.message});
         this.setState({loading: false});
       });  
   }
@@ -61,6 +66,7 @@ class CreateUser extends Component<Props> {
     return ( 
         <View style={styles.container}>
         <Text style={(this.state.error ) ? [styles.errorText] : [{display: 'none'}]}>Wrong email or password</Text>
+        <Text style={(this.state.err!=='' ) ? [styles.errorText] : [{display: 'none'}]}>{this.state.err}</Text>
 
         <TextInput
           style={styles.input}
@@ -78,22 +84,20 @@ class CreateUser extends Component<Props> {
           placeholderTextColor={'#666666'}
           onChangeText={(text) => { this.setState({ 'password': text }) }}
         />
-        
-        <TouchableHighlight style={styles.btn} onPress={this.newAccount} disabled={this.state.loading}>
-          <Text style={[styles.titleBtn, { color: "#fff" }]}>Create</Text> 
-        </TouchableHighlight>
+        <MyButton style={{marginTop:30}} onPress={this.newAccount} disabled={this.state.loading} title={'Create'}/>
 
         <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
       </View>
       
     )
   }   
-}  
+}   
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    paddingTop: 60
   },
   title: {
     fontSize: 27,

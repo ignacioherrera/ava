@@ -16,3 +16,4 @@ export const chatActiveIcon = require('./chatActive.png');
 export const clockIcon = require('./clock.png');
 export const clockActiveIcon = require('./clockActive.png');  
 export const profileActiveIcon = require('./profileActive.png');
+export const logoIcon = require('./logo.png');

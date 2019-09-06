@@ -14,57 +14,66 @@ class AlertCountdown extends Component<Props> {
         const { containerStyle = {} } = props;
         this.containerStyle = containerStyle;
         this.state = {
-            timeToBirthday: 0
+            timeToBirthday: 0,
+            time: 0
         }
     }
     componentDidMount() {
+        this.setState({time: this.checkPayDates(this.props.date)});
+    }
+    componentDidUpdate(prevProps) { 
+        if (prevProps.date !== this.props.date) {
+            const timeUpdate =  this.checkPayDates(this.props.date);
+            this.setState({time: timeUpdate, timeToBirthday: timeUpdate});
+        }
     }
     checkPayDates(b) {
-        console.log(b);
-
         if (b !== undefined) {
-            const str = b.split('T')[0].split('-');
-            console.log('lafecha', str);
-            const date = new Date(parseInt(str[0]), parseInt(str[1]) - 1, parseInt(str[2]));
+            const date = new Date(b);
             const a = new Date();
-            return (date - a) / 1000;
+            const time = (date - a) / 1000;
+            return time;
 
         }
     }
+    updateTime =(time)=>{
+       this.setState({timeToBirthday: time}); 
+    }
     render() {
-        if (this.props.onPress === undefined || this.props.visible === false || this.props.date === undefined) {
+        if (this.props.onPress === undefined || this.props.date === undefined || this.state.time ===undefined) {
             return null;
         }
         return (
-            <TouchableOpacity onPress={this.props.onPress} style={styles.alert}>
+            <TouchableOpacity onPress={this.props.onPress} style={(this.props.visible)?styles.alert:{display:'none'}}>
                 <View style={[styles.alertContainer, this.containerStyle]}>
                     <Text style={styles.alertTitle}>Birthday Time</Text>
                     <CountDown
-                        until={this.checkPayDates(this.props.date)}
+                        onChange={this.updateTime}
+                        until={this.state.time}
                         onFinish={() => this.props.onFinish}
                         size={18}
                         style={{ marginTop: 10 }}
                         timeLabelStyle={{
-                            fontSize:11,
+                            fontSize: 11,
                             fontFamily: 'Lato-Bold',
                             fontWeight: 'bold',
                             color: '#000'
                         }}
-                        digitStyle={(this.props.timeToBirthday <= 432000) ? styles.countClose : styles.countOpen}
+                        digitStyle={(this.state.timeToBirthday <= 432000) ? styles.countClose : styles.countOpen}
                         digitTxtStyle={{
                             color: '#fff',
                             fontSize: 21,
                             fontWeight: 'bold',
                             fontFamily: 'Lato-Bold'
                         }}
-                        separatorStyle={{  color: '#fff' }}
+                        separatorStyle={{ color: '#fff' }}
                         showSeparator={true}
                     />
                     <Text style={styles.alertDescription}>Every time look at it so you don't forget to congratulate it.</Text>
                 </View>
             </TouchableOpacity>
         )
- 
+
     }
 
 }
@@ -89,7 +98,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 20,
         fontWeight: 'bold'
-    }, 
+    },
     countOpen: {
         backgroundColor: '#000',
         borderRadius: 10,

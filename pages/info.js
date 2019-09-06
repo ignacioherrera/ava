@@ -48,36 +48,7 @@ class Info extends Component<Props> {
     static navigationOptions = {
         header: null
     }
-    /*static navigationOptions = ({ navigation }) => {
-        const { params = {} } = navigation.state;
-        return {
-            headerTitle: (
-                <Text style={[styles.title, {
-                    textAlign: 'center',
-                    flexGrow: 1,
-                    alignSelf: 'center'
-                }]}>Birthdays</Text>
-            ), 
-            headerLeft: (
-            <View style={[styles.headerTitle, { flex: 3 }]}>
-                <TouchableOpacity onPress={() => { navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 7 }} ><Image source={homeIcon} style={{ width: 18, height: 19, marginTop: 5, marginLeft: 5 }} /></TouchableOpacity>
-            </View>),//add this
-            headerRight: (
-                <View style={[styles.headerTitle, { flex: 1 }]}>
-                    <TouchableOpacity onPress={() => { navigation.navigate('Profile') }} style={{ paddingHorizontal: 5, paddingVertical: 7 }} ><Image source={moreIcon} style={{ width: 25, height: 6, marginTop: 5, marginLeft: 5 }} /></TouchableOpacity>
-                </View>
-
-            ),
-            headerStyle: {
-            },
-            headerTintColor: '#666666',
-            headerTitleStyle: {
-                color: "#666666",
-                fontSize: 22,
-                fontFamily: "Lato-Bold"
-            },
-        }
-    };*/
+  
     onUsersUpdate = (querySnapshot) => {
         const users = [];
         const today = new Date();
@@ -119,7 +90,6 @@ class Info extends Component<Props> {
         return false;
     }
     goChat = () => {
-        console.log('lo que mando para el chat', this.state.userActive);
         this.props.navigation.navigate('Home', { userActive: JSON.stringify(this.state.userActive),  });
     }
     renderUser = ({ item, index }) => {
@@ -131,6 +101,9 @@ class Info extends Component<Props> {
             css = [styles.userItemActive];
             textStyle.push(styles.userTitleActive);
         } 
+        if (index ===0){
+            css.push({marginLeft:30});
+        }
 
         return (
             <View style={styles.itemViewParent}>
@@ -248,8 +221,7 @@ const styles = StyleSheet.create({
     usersList: {
         marginTop: 10,
         maxHeight: 40,
-        minHeight: 40,
-        marginLeft: 30
+        minHeight: 40
     },
     userTitle: {
         fontFamily: 'Lato-Bold',

@@ -36,9 +36,8 @@ const styles = StyleSheet.create({
     btn: {
         width: 290,
         backgroundColor: "#000",
-        borderRadius: 10,
         paddingVertical: 18,
-        borderRadius: 20
+        borderRadius: 30
     }, 
     text:{ 
         textAlign: 'center', 

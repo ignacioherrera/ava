@@ -49,7 +49,6 @@ class Home extends Component<Props> {
   };
   createGift = () => {
     const { name, actual_birth, key } = this.userActive;
-    console.log(this.userActive);
     this.props.navigation.navigate('NewGift', {
       user: JSON.stringify({ name, actual_birth, key })
     });
@@ -95,7 +94,6 @@ class Home extends Component<Props> {
         return new Date(b.timestamp) - new Date(a.timestamp);
       });
     });
-    console.log('los mensajes', messages);
     this.setState({
       messages,
       isLoading: false,
@@ -106,8 +104,6 @@ class Home extends Component<Props> {
     const { timestamp: numberStamp, text, user, _id } = snapshot.data();
     const { } = snapshot;
     // 2.
-    console.log('El que vira en la peticion', snapshot.data());
-    console.log(text);
     let timestamp = new Date();
     if (numberStamp) timestamp = numberStamp.toDate();
     // 3.
@@ -115,7 +111,6 @@ class Home extends Component<Props> {
     let us = user;
     if (u !== undefined) {
 
-      console.log('el avatar del user', u);
       us.avatar = u.avatar;
     }
     const message = {
@@ -131,7 +126,6 @@ class Home extends Component<Props> {
     AsyncStorage.getItem('user').then((user) => {
       if (user) {
         u = JSON.parse(user);
-        console.log('el user del async storage', u);
         this.setState({ user: { _id: u.key, name: u.name, avatar: u.avatar } });
         this.usersSubscription = this.refUsers.onSnapshot(this.onUsersUpdate, (error) => {
           alert('Firebase connection error');
@@ -143,18 +137,15 @@ class Home extends Component<Props> {
             AsyncStorage.getItem('user').then((user) => {
               if (user) {
                 us = JSON.parse(user);
-                console.log('el user del async storage didfocus', us);
                 this.setState({ user: { _id: us.key, name: us.name, avatar: us.avatar } });
                 this.props.navigation.setParams({ avatar: this.state.user.avatar });
               }
             });
-            console.log('oe esto entro al focus');
           }
         );
         this.willBlurSubscription = this.props.navigation.addListener(
           'willBlur',
           payload => {
-            console.log('Se fue el home');
           }
         );
       }
@@ -178,8 +169,6 @@ class Home extends Component<Props> {
           birth_date: this.userActive.actual_birth
 
         };
-        console.log('add message ', messages);
-        console.log('add message server', message);
         firebase.firestore().collection('messages').add(message).then(() => {
 
         }).catch((e) => {

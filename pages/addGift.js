@@ -20,7 +20,6 @@ class NewGift extends Component<Props> {
     super(props);
     this.props.navigation;
     this.forUser = JSON.parse(this.props.navigation.state.params.userActive);
-    console.log(this.forUser);
     this.ref = firebase.firestore().collection('gifts');
     this.refMessages = firebase.firestore().collection('messages');
     this.state = {
@@ -56,7 +55,6 @@ class NewGift extends Component<Props> {
       noData: true,
     }
     ImagePicker.launchImageLibrary(options, response => {
-      console.log(response);
       if (response.uri) {
         this.setState({ photo: response }, () => {
         });
@@ -74,7 +72,6 @@ class NewGift extends Component<Props> {
     window.Blob = Blob;
     let uploadBlob = null;
     const name = this.state.photo.fileName.split('.');
-    console.log(this.nameGen + '.' + name[name.length - 1]);
     const imageRef = firebase.storage().ref('gifts').child(this.nameGen() + '.' + name[name.length - 1]);
     let mime = 'image/jpg';
     fs.readFile(image, 'base64')
@@ -122,7 +119,6 @@ class NewGift extends Component<Props> {
           });
         })
           .catch((error) => {
-            console.log("Error adding document: ", error);
             this.setState({
               error: error,
               isLoading: false,
@@ -130,7 +126,6 @@ class NewGift extends Component<Props> {
           });
       })
       .catch((error) => {
-        console.log(error);
         this.setState({ isloading: false });
       })
   }
@@ -184,7 +179,6 @@ class NewGift extends Component<Props> {
               });
             })
               .catch((error) => {
-                console.log("Error adding document: ", error);
                 this.setState({
                   error: error,
                   isLoading: false,
@@ -267,10 +261,10 @@ class NewGift extends Component<Props> {
                 )
               } 
 
-              <MyButton style={{marginTop: 20}} onPress={this.handleChoosePhoto} disabled={this.state.loading} title={(this.state.photo === null) ? 'Open Gallery' : 'Change Photo'}/>
+              <MyButton style={{marginTop: 20}} onPress={this.handleChoosePhoto} disabled={this.state.isLoading} title={(this.state.photo === null) ? 'Open Gallery' : 'Change Photo'}/>
               <MyButton style={{marginTop: 30}} 
               onPress={this.save} 
-              disabled={this.state.isloading} title={'Create'}/>
+              disabled={this.state.isLoading} title={'Create'}/>
 
               <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.isLoading) ? [styles.loading] : [styles.loadingoff]} />
             </View>

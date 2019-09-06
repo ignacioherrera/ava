@@ -11,6 +11,7 @@ import firebase from '../Firebase';
 import { ScrollView } from 'react-native-gesture-handler';
 import BottomBar from '../components/bottomBar';
 import AlertCountdown from '../components/alertCountdown';
+import MyButton from '../components/myButton';
 const { height, width } = Dimensions.get('window');
 
 type Props = {};
@@ -21,7 +22,6 @@ class Profile extends Component<Props> {
     this.props.navigation;
     this.userRef = firebase.firestore().collection('users');
     this.userActive = JSON.parse(this.props.navigation.state.params.userActive);
-    console.log(this.userActive);
   }
   state = {
     photo: null,
@@ -47,7 +47,6 @@ class Profile extends Component<Props> {
     }
     ImagePicker.launchImageLibrary(options, response => {
       if (response.uri) {
-        console.log(response);
         this.setState({ photo: response })
       }
     })
@@ -88,11 +87,8 @@ class Profile extends Component<Props> {
       })
       .then((url) => {
         // URL of the image uploaded on Firebase storage
-        console.log(url);
-        console.log(this.userRef);
         window.XMLHttpRequest = originalXMLHttpRequest;
         firebase.firestore().collection('users').doc(this.state.user.key).update({ 'avatar': url }).then((r) => {
-          console.log('modifico el user', r);
           let u = this.state.user;
           u['avatar'] = url;
           AsyncStorage.setItem('user', JSON.stringify(u)).then(() => {
@@ -106,7 +102,6 @@ class Profile extends Component<Props> {
 
       })
       .catch((error) => {
-        console.log(error);
         this.setState({ loading: false });
 
       })
@@ -117,7 +112,6 @@ class Profile extends Component<Props> {
     AsyncStorage.getItem('user').then((user) => {
       if (user) {
         u = JSON.parse(user);
-        console.log('el user del async storage', u);
         this.setState({ user: u, isLoading: false });
         this.userRef = this.userRef.doc(this.state.user.key);
       }
@@ -153,17 +147,14 @@ class Profile extends Component<Props> {
               )
             }
             <View style={{ alignItems: 'center' }}>
-              <TouchableOpacity style={[styles.btn]} onPress={this.handleChoosePhoto} disabled={this.state.loading}>
-                <Text style={[styles.title, { color: "#fff" }]}>Change Photo</Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.btn]} onPress={this.uploadPhoto} disabled={this.state.loading || this.state.photo === null}>
-                <Text style={[styles.title, { color: "#fff" }]}>Save Photo</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.btn]} onPress={() => { this.props.navigation.navigate('Users') }}>
-                <Text style={[styles.title, { color: "#fff" }]}>View users registered</Text>
-              </TouchableOpacity>
+              <MyButton style={{marginTop:40}} onPress={this.handleChoosePhoto} disabled={this.state.loading} title={'Change Photo'}/>
 
+              {
+                this.state.photo !== null && (
+                  <MyButton style={{marginTop:40}} onPress={this.uploadPhoto} disabled={this.state.loading} title={'Save Photo'}/>
+                )
+              }
             </View>
             <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
           </ScrollView>
@@ -179,8 +170,6 @@ class Profile extends Component<Props> {
             <AlertCountdown visible={this.state.alert} onPress={() => { this.setState({ alert: false }) }} date={this.userActive.actual_birth} />
           )
         }
-
-
       </View>
     );
   }
@@ -208,15 +197,7 @@ const styles = StyleSheet.create({
   },
   loadingoff: {
     display: 'none'
-  },
-  btn: {
-    width: 310,
-    backgroundColor: "#000",
-    borderRadius: 10,
-    paddingVertical: 15,
-    marginTop: 20,
-    alignItems: 'center'
-  },
+  }, 
   title: {
     fontSize: 20,
     textAlign: 'center',

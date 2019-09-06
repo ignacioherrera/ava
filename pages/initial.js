@@ -41,13 +41,14 @@ class Initial extends Component<Props> {
     return (
       <Swiper style={styles.wrapper} onIndexChanged={this.changeIndex} showsButtons={false} activeDotStyle={{backgroundColor:'#000'}}>
         <View style={styles.slide}>
-          <Text style={styles.text}>Select an event</Text>
+          <Text style={styles.text}>Choose a birthday</Text>
         </View>
         <View style={styles.slide}>
-          <Text style={styles.text}>Suggest and vote for a gift</Text>
+          <Text style={styles.text}>Search and vote for a gift</Text>
         </View>
         <View style={styles.slide}>
-          <Text style={styles.text}>Enjoy buying it to your friend.</Text>
+          <Text style={styles.text}>Enjoy buying it for</Text>
+          <Text style={styles.text}>your friend.</Text>
         </View>
       </Swiper>
     );
@@ -60,6 +61,7 @@ const styles = StyleSheet.create({
   slide: {
     flex: 1,
     justifyContent: 'center',
+    lineHeight:22,
     alignItems: 'center',
   },
   text: {

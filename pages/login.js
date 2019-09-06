@@ -3,10 +3,11 @@
  * @flow
  */
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TextInput, TouchableHighlight } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import firebase from '../Firebase';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-community/async-storage';
+import MyButton from '../components/myButton';
 
 type Props = {};
 
@@ -31,7 +32,6 @@ class Login extends Component<Props> {
     const regexp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (this.state.email === '' || !regexp.test(this.state.email)) {
       this.setState({ error: true });
-      console.log('wrong email', this.state.email);
 
       return false;
     }
@@ -72,7 +72,6 @@ class Login extends Component<Props> {
             this.setState({errorConnect: true, loading: false});
           }
           else{
-            console.log(err);
             this.setState({error: true, loading: false});
           }
          
@@ -84,7 +83,6 @@ class Login extends Component<Props> {
     //.createUserWithEmailAndPassword('iherrera@email.com', '123456789')
   }
   newAccount = () => {
-    console.log('navigation'); 
     this.props.navigation.navigate('CreateUser');
   }
   render() {
@@ -108,16 +106,12 @@ class Login extends Component<Props> {
           placeholderTextColor={'#666666'}
           onChangeText={(text) => { this.setState({ 'password': text }) }}
         />
-        <TouchableHighlight onPress={this.newAccount} style={styles.createTouch}>
+        <TouchableOpacity onPress={this.newAccount} style={styles.createTouch}>
           <Text style={styles.createText}>I don't have an account yet</Text>
-        </TouchableHighlight>
+        </TouchableOpacity>
 
-        <TouchableHighlight style={styles.btn} onPress={this.login} disabled={this.state.loading}>
-          <Text style={[styles.titleBtn, { color: "#fff" }]}>Login</Text>
-        </TouchableHighlight>
-
-
-
+        <MyButton onPress={this.login} disabled={this.state.loading} title={'Login'}/>
+        
         <ActivityIndicator size="large" color="#000" animating={true} style={(this.state.loading) ? [styles.loading] : [styles.loadingoff]} />
       </View>
 
